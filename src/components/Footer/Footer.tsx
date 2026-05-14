@@ -1,6 +1,7 @@
 import CameraSelect from 'components/CameraSelect';
 import MainRecordButton from 'components/MainRecordButton';
 import MicrophoneSelect from 'components/MicrophoneSelect';
+import PositionSelect from 'components/PositionSelect';
 import ShapeSelect from 'components/ShapeSelect';
 import TeleprompterSelect from 'components/TeleprompterSelect';
 
@@ -12,6 +13,7 @@ const Footer = () => {
       <div>&nbsp;</div>
       <MainRecordButton />
       <div className={styles.devices}>
+        <PositionSelect />
         <TeleprompterSelect />
         <ShapeSelect />
         <MicrophoneSelect />

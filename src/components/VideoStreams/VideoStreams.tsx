@@ -1,17 +1,22 @@
 import cx from 'classnames';
-import { useState } from 'react';
+import { PointerEvent, useCallback, useRef, useState } from 'react';
 
 import Placeholder from 'components/Placeholder';
-import { useLayout } from 'contexts/layout';
-import { useStreams } from 'contexts/streams';
 import { useCameraShape } from 'contexts/cameraShape';
+import {
+  CameraPosition,
+  getPresetPosition,
+  PRESET_NAMES,
+  SNAP_DISTANCE,
+  useCameraPosition,
+} from 'contexts/cameraPosition';
+import { useLayout } from 'contexts/layout';
 import { usePictureInPicture } from 'contexts/pictureInPicture';
+import { useStreams } from 'contexts/streams';
 import useVideoSource from 'hooks/useVideoSource';
 import {
   CAMERA_BORDER_RADIUS,
   CAMERA_HEIGHT,
-  CAMERA_MARGIN_BOTTOM,
-  CAMERA_MARGIN_RIGHT,
   CAMERA_WIDTH,
 } from 'services/composer';
 import { percentage } from 'services/format/number';
@@ -22,6 +27,18 @@ type ScreenshareSize = {
   width: number;
   height: number;
 };
+
+type DragState = {
+  pointerId: number;
+  startX: number;
+  startY: number;
+  startPos: CameraPosition;
+  containerWidth: number;
+  containerHeight: number;
+};
+
+const clamp = (v: number, min: number, max: number) =>
+  Math.min(max, Math.max(min, v));
 
 const VideoStreams = () => {
   const { layout } = useLayout();
@@ -34,12 +51,79 @@ const VideoStreams = () => {
   const [screenshareSize, setScreenshareSize] =
     useState<ScreenshareSize | null>(null);
   const { isCircle } = useCameraShape();
+  const { position, setPosition } = useCameraPosition();
+
+  const dragRef = useRef<DragState | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   if (!screenshareStream && screenshareSize) {
     setScreenshareSize(null);
   }
   const screenshareWidth = screenshareSize?.width ?? 1920;
   const screenshareHeight = screenshareSize?.height ?? 1080;
+
+  const sizeFracX = CAMERA_WIDTH / screenshareWidth;
+  const sizeFracY = CAMERA_HEIGHT / screenshareHeight;
+
+  const handlePointerDown = useCallback(
+    (event: PointerEvent<HTMLVideoElement>) => {
+      if (event.button !== 0) return;
+      const target = event.currentTarget;
+      const parent = target.parentElement;
+      if (!parent) return;
+      const rect = parent.getBoundingClientRect();
+      target.setPointerCapture(event.pointerId);
+      dragRef.current = {
+        pointerId: event.pointerId,
+        startX: event.clientX,
+        startY: event.clientY,
+        startPos: position,
+        containerWidth: rect.width,
+        containerHeight: rect.height,
+      };
+      setIsDragging(true);
+      event.preventDefault();
+    },
+    [position],
+  );
+
+  const handlePointerMove = useCallback(
+    (event: PointerEvent<HTMLVideoElement>) => {
+      const drag = dragRef.current;
+      if (!drag || drag.pointerId !== event.pointerId) return;
+      const dx = (event.clientX - drag.startX) / drag.containerWidth;
+      const dy = (event.clientY - drag.startY) / drag.containerHeight;
+      let nextX = clamp(drag.startPos.x + dx, 0, 1 - sizeFracX);
+      let nextY = clamp(drag.startPos.y + dy, 0, 1 - sizeFracY);
+
+      if (!event.altKey) {
+        for (const name of PRESET_NAMES) {
+          const target = getPresetPosition(name, sizeFracX, sizeFracY);
+          if (
+            Math.abs(nextX - target.x) < SNAP_DISTANCE &&
+            Math.abs(nextY - target.y) < SNAP_DISTANCE
+          ) {
+            nextX = target.x;
+            nextY = target.y;
+            break;
+          }
+        }
+      }
+
+      setPosition({ x: nextX, y: nextY });
+    },
+    [setPosition, sizeFracX, sizeFracY],
+  );
+
+  const endDrag = useCallback((event: PointerEvent<HTMLVideoElement>) => {
+    const drag = dragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+    dragRef.current = null;
+    setIsDragging(false);
+  }, []);
 
   return (
     <>
@@ -86,13 +170,14 @@ const VideoStreams = () => {
           <video
             className={cx(styles.pipStream, styles.cameraStream, {
               [styles.circle]: isCircle,
+              [styles.dragging]: isDragging,
             })}
             ref={updateCameraSource}
             style={{
-              right: percentage(CAMERA_MARGIN_RIGHT / screenshareWidth),
-              bottom: percentage(CAMERA_MARGIN_BOTTOM / screenshareHeight),
-              width: percentage(CAMERA_WIDTH / screenshareWidth),
-              height: percentage(CAMERA_HEIGHT / screenshareHeight),
+              left: percentage(position.x),
+              top: percentage(position.y),
+              width: percentage(sizeFracX),
+              height: percentage(sizeFracY),
               borderRadius: isCircle
                 ? '50%'
                 : [
@@ -103,6 +188,10 @@ const VideoStreams = () => {
             autoPlay
             playsInline
             muted
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={endDrag}
+            onPointerCancel={endDrag}
           />
         )}
     </>

@@ -5,8 +5,33 @@
 
 .pipStream {
   position: absolute;
+  transition:
+    left 200ms ease,
+    top 200ms ease,
+    transform 150ms ease,
+    box-shadow 150ms ease;
   border-radius: 8px;
+  box-shadow: 0 2px 12px rgb(0 0 0 / 30%);
+  cursor: grab;
   object-fit: cover;
+  touch-action: none;
+  user-select: none;
+}
+
+.pipStream:active {
+  cursor: grabbing;
+}
+
+.pipStream.dragging {
+  transform: scale(1.02);
+  transition:
+    transform 100ms ease,
+    box-shadow 100ms ease;
+  box-shadow: 0 6px 24px rgb(0 0 0 / 50%);
+}
+
+.pipStream.dragging.cameraStream {
+  transform: scale(1.02) scaleX(-1);
 }
 
 .cameraStream {

@@ -1,19 +1,38 @@
+import type { CameraPosition } from 'contexts/cameraPosition';
+
 export const CAMERA_WIDTH = 240;
 export const CAMERA_HEIGHT = 240;
 export const CAMERA_BORDER_RADIUS = 8;
-export const CAMERA_MARGIN_RIGHT = 40;
-export const CAMERA_MARGIN_BOTTOM = 40;
 
 const getCameraShape = () => {
   const shape = localStorage.getItem('cameraShape');
   return shape === 'circle' ? CAMERA_WIDTH / 2 : CAMERA_BORDER_RADIUS;
 };
 
+const clampCameraOrigin = (
+  pos: CameraPosition,
+  canvasWidth: number,
+  canvasHeight: number,
+) => {
+  const maxX = Math.max(0, canvasWidth - CAMERA_WIDTH);
+  const maxY = Math.max(0, canvasHeight - CAMERA_HEIGHT);
+  return {
+    x: Math.min(maxX, Math.max(0, pos.x * canvasWidth)),
+    y: Math.min(maxY, Math.max(0, pos.y * canvasHeight)),
+  };
+};
+
+export type ComposeOptions = {
+  cameraPositionRef?: { current: CameraPosition };
+};
+
 export const composeStreams = (
   cameraStream: MediaStream | null,
   microphoneStream: MediaStream | null,
   screenshareStream: MediaStream | null,
+  options: ComposeOptions = {},
 ): MediaStream => {
+  const cameraPositionRef = options.cameraPositionRef;
   const cameraTrack = cameraStream?.getVideoTracks()[0];
   const microphoneTrack = microphoneStream?.getAudioTracks()[0];
   const screenshareTrack = screenshareStream?.getVideoTracks()[0];
@@ -88,10 +107,18 @@ export const composeStreams = (
           ctx.drawImage(latestScreenshareFrame, 0, 0);
         }
 
+        const currentPos = cameraPositionRef?.current ?? { x: 0, y: 0 };
+        const { x: camX, y: camY } = clampCameraOrigin(
+          currentPos,
+          canvas.width,
+          canvas.height,
+        );
+
+        ctx.save();
         ctx.beginPath();
         ctx.roundRect(
-          canvas.width - CAMERA_WIDTH - CAMERA_MARGIN_RIGHT,
-          canvas.height - CAMERA_HEIGHT - CAMERA_MARGIN_BOTTOM,
+          camX,
+          camY,
           CAMERA_WIDTH,
           CAMERA_HEIGHT,
           getCameraShape(),
@@ -104,8 +131,8 @@ export const composeStreams = (
           0,
           cameraFrame.displayHeight,
           cameraFrame.displayHeight,
-          canvas.width - CAMERA_WIDTH - CAMERA_MARGIN_RIGHT,
-          canvas.height - CAMERA_HEIGHT - CAMERA_MARGIN_BOTTOM,
+          camX,
+          camY,
           CAMERA_WIDTH,
           CAMERA_HEIGHT,
         );

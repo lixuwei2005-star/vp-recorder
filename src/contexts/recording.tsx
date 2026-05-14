@@ -3,6 +3,7 @@ import { createContext, useContext, useRef, useState } from 'react';
 import { RecordingModal } from 'components/RecordingModal';
 import { composeStreams } from 'services/composer';
 
+import { useCameraPosition } from './cameraPosition';
 import { useLayout } from './layout';
 import { useStreams } from './streams';
 
@@ -32,6 +33,7 @@ export const RecordingProvider = ({ children }: RecordingProviderProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [recordingBlob, setRecordingBlob] = useState<Blob | null>(null);
   const { cameraStream, microphoneStream, screenshareStream } = useStreams();
+  const { positionRef: cameraPositionRef } = useCameraPosition();
 
   const mediaRecorder = useRef<MediaRecorder>();
 
@@ -42,6 +44,7 @@ export const RecordingProvider = ({ children }: RecordingProviderProps) => {
       layout === 'screenOnly' ? null : cameraStream,
       microphoneStream,
       layout === 'cameraOnly' ? null : screenshareStream,
+      { cameraPositionRef },
     );
     mediaRecorder.current = new MediaRecorder(composedStream, {
       mimeType: 'video/webm; codecs=vp9',
