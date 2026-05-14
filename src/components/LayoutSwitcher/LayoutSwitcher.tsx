@@ -1,9 +1,9 @@
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
+import { useI18n } from 'contexts/i18n';
 import { Layout, useLayout } from 'contexts/layout';
 
-import CameraOnlyIcon from './icons/CameraOnlyIcon';
 import ScreenAndCameraIcon from './icons/ScreenAndCameraIcon';
 import ScreenOnlyIcon from './icons/ScreenOnlyIcon';
 
@@ -11,6 +11,7 @@ import styles from './LayoutSwitcher.module.css';
 
 const LayoutSwitcher = () => {
   const { layout, setLayout } = useLayout();
+  const { t } = useI18n();
 
   return (
     <ToggleButtonGroup
@@ -25,15 +26,11 @@ const LayoutSwitcher = () => {
     >
       <ToggleButton value="screenOnly">
         <ScreenOnlyIcon />
-        Screen only
+        {t('layout.screenOnly')}
       </ToggleButton>
       <ToggleButton value="screenAndCamera">
         <ScreenAndCameraIcon />
-        Screen and camera
-      </ToggleButton>
-      <ToggleButton value="cameraOnly">
-        <CameraOnlyIcon />
-        Camera only
+        {t('layout.screenAndCamera')}
       </ToggleButton>
     </ToggleButtonGroup>
   );

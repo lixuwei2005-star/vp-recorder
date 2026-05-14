@@ -3,39 +3,119 @@
   max-height: 100%;
 }
 
-.pipStream {
+/*
+ * Bare camera surface (<video> or <canvas>) in camera-only layout. We keep
+ * zoom as a CSS transform here because there's no .cameraFrame wrapper to do
+ * JS positioning against; offset panning is intentionally unsupported in this
+ * mode (transform-origin can't pan when scale == 1, which was the bug fixed
+ * in PiP).
+ *
+ * When virtual background is active, the underlying element switches from
+ * <video> to <canvas>. Both are replaced elements with intrinsic dimensions,
+ * so `aspect-ratio` and `object-fit` apply uniformly.
+ */
+.cameraStream {
+  transform: scaleX(-1) scale(var(--cam-zoom, 1));
+  transition: transform 150ms ease;
+}
+
+.cameraOnlyCanvas {
+  composes: cameraStream;
+  /*
+   * Canvas defaults to its bitmap pixel size; force the same layout as the
+   * <video> so the cameraOnly element fills the main slot.
+   */
+  max-width: 100%;
+  max-height: 100%;
+}
+
+/*
+ * Shape support in camera-only mode. Forcing aspect-ratio + object-fit:cover
+ * makes the bare <video> behave like the PiP wrapper for square/circle:
+ * the box is square and the 16:9 source is center-cropped to fill it.
+ */
+.mainStream[data-shape='square'],
+.mainStream[data-shape='circle'] {
+  aspect-ratio: 1 / 1;
+  width: auto;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mainStream[data-shape='circle'] {
+  border-radius: 50%;
+}
+
+/*
+ * Camera frame wrapper (PiP layout). The wrapper owns the shape (aspect-ratio
+ * + border-radius) and clips with overflow:hidden. The inner <video> is
+ * positioned and sized in JS (see computeVideoFramingStyle in VideoStreams.tsx)
+ * so that an arbitrary [srcX, srcY, srcW, srcH] region of the camera source
+ * exactly fills the wrapper. This bypasses CSS transform-origin (which is a
+ * no-op when scale == 1) and matches the composer's source-rect math byte for
+ * byte. `transform: scaleX(-1)` on the video is the only remaining transform
+ * — purely for the mirror — and the JS positioning negates offsetX so the
+ * flipped content still corresponds to the same source region the composer
+ * crops.
+ */
+.cameraFrame {
+  position: relative;
+  overflow: hidden;
+  background: #000;
+}
+
+.cameraFrame > video,
+.cameraFrame > canvas {
+  position: absolute;
+  display: block;
+  transform: scaleX(-1);
+  transition:
+    width 150ms ease,
+    height 150ms ease,
+    left 150ms ease,
+    top 150ms ease;
+}
+
+/* PiP (camera-in-corner) layout */
+.pipFrame {
   position: absolute;
   transition:
     left 200ms ease,
     top 200ms ease,
-    transform 150ms ease,
-    box-shadow 150ms ease;
-  border-radius: 8px;
+    box-shadow 150ms ease,
+    filter 150ms ease;
   box-shadow: 0 2px 12px rgb(0 0 0 / 30%);
   cursor: grab;
-  object-fit: cover;
   touch-action: none;
   user-select: none;
 }
 
-.pipStream:active {
+.pipFrame:active {
   cursor: grabbing;
 }
 
-.pipStream.dragging {
-  transform: scale(1.02);
+.pipFrame.dragging {
   transition:
-    transform 100ms ease,
-    box-shadow 100ms ease;
-  box-shadow: 0 6px 24px rgb(0 0 0 / 50%);
+    box-shadow 100ms ease,
+    filter 100ms ease;
+  box-shadow: 0 8px 28px rgb(0 0 0 / 50%);
+  cursor: grabbing;
+  filter: brightness(1.06);
 }
 
-.pipStream.dragging.cameraStream {
-  transform: scale(1.02) scaleX(-1);
+.pipFrame[data-shape='rectangle'] {
+  aspect-ratio: var(--camera-aspect-ratio, 4 / 3);
+  border-radius: 6px;
 }
 
-.cameraStream {
-  transform: scaleX(-1);
+.pipFrame[data-shape='square'] {
+  aspect-ratio: 1 / 1;
+  border-radius: 6px;
+}
+
+.pipFrame[data-shape='circle'] {
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
 }
 
 .shapeToggleContainer {
@@ -65,4 +145,28 @@
 
 .circle {
   border-radius: 50% !important;
+}
+
+/*
+ * Shown inside the in-page pipFrame while the camera is being rendered in
+ * the PiP popup window (in-page <video>/<canvas> stays unbound so the same
+ * stream isn't decoded twice — that's why the frame looks black). Tells the
+ * user the camera is still active, just relocated to the popup.
+ */
+.pipMovedHint {
+  display: flex;
+  position: absolute;
+  inset: 0;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+  padding: 8px;
+  color: rgb(255 255 255 / 75%);
+  font-size: 12px;
+  font-weight: 500;
+  text-align: center;
+  pointer-events: none;
+  border: 2px dashed rgb(255 255 255 / 55%);
+  border-radius: inherit;
+  box-sizing: border-box;
 }

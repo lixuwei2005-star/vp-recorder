@@ -1,102 +1,46 @@
-# 🎥 Record
+# vp-recorder
 
-Record [record.addy.ie](https://record.addy.ie) is an open-source web app lets you record your screen and camera directly in your browser – privacy-friendly with no downloads or installations required! Record from a tab, window or your full screen.
+In-browser presentation recorder. Capture your screen and webcam together, with a draggable camera overlay, auto face-centering, virtual background, and a cross-window floating teleprompter. Everything runs locally in the browser — no upload, no server.
 
-<a align="center" href="https://record.addy.ie">
-  <img alt="" src="public/screenshot-02.jpg" width="49%"/>
-  <img alt="" src="public/screenshot-03.jpg" width="49%"/>
-</a>
+This project is a second-stage fork based on [addyosmani/recorder](https://github.com/addyosmani/recorder) (itself a fork of [contrastio/recorder](https://github.com/contrastio/recorder)).
 
 ## Features
 
-- ✨ **Simple and Intuitive:** Record offers a user-friendly interface, making recording a breeze for everyone.
-- 🎥 **Screen and Camera Recording:** Capture your browser tab or window while simultaneously adding a personal touch with your webcam.
-- 🖼️ **Picture-in-Picture View:** Experience the magic of picture-in-picture, see yourself while you're recording your screen.
-- 🔄 **Customizable Camera Shape:** Choose between a circular or square camera view that persists in both preview and final recording.
-- 📝 **Built-in Teleprompter:** Use the integrated teleprompter to read your script while recording, with adjustable speed and playback controls.
-- 🔒 **Local and Secure:** Privacy should always be a top priority! All recordings take place directly in your browser so whatever you record, only you'll have access to it.
-- 🎬 **Real-time Preview:** Preview your camera and screen recording in real-time before diving into the action.
-- 🔄 **MP4 Conversion:** Convert your recordings from WEBM to MP4 format using FFMPEG.wasm, right in your browser!
+- **Screen + camera composite recording** — record your screen, browser tab, or window, with the webcam overlaid into the final video.
+- **Draggable multi-shape camera overlay** — circle/square/portrait shapes, drag freely or snap to 4 corner presets, persists across preview and recording.
+- **Smart framing with auto face-centering** — face-tracking keeps you centered as you move; multiple zoom/framing presets.
+- **Virtual background** — selfie segmentation runs in-browser via MediaPipe; pick a background image or blur.
+- **Cross-window floating teleprompter** — script playback in a separate always-on-top window so you can read while looking at the screen-share target. Adjustable speed and font size.
+- **MP4 export** — convert the WebM recording to MP4 in-browser via FFmpeg.wasm.
+- **Mic level meter, pause/resume, recording timer, multi-language UI.**
 
-## How to Use
+## Run locally
 
-1. **Access the Web Application:** Fire up your browser and head to [record.addy.ie](https://record.addy.ie).
+Requires Node 18+ and Yarn.
 
-2. **Choose Your Mode:** Select your desired recording mode:
+```bash
+yarn
+yarn dev
+```
 
-   - 🖥️ **Screen only:** Capture your browser tab or window without the camera.
-   - 🎥 **Screen and camera:** Record your browser tab or window along with your awesome camera.
-   - 📷 **Camera only:** Focus solely on your camera for a personal touch.
+A `postinstall` step copies the MediaPipe WASM runtime into `public/mediapipe-wasm/`. The required `.tflite` models are committed under `public/models/`.
 
-3. **Customize Camera Shape:** Select your preferred camera shape (square or circle) using the shape toggle in the footer.
+Build for production:
 
-4. **Use the Teleprompter (Optional):** 
-   - Click the teleprompter icon in the footer to open the teleprompter
-   - Type or paste your script into the text area
-   - Use the playback controls to start/pause scrolling
-   - Adjust the scroll speed using the + and - buttons
-   - Close the teleprompter when you're done
+```bash
+yarn build
+```
 
-5. **Start Recording:** Click the big red "Record" button to kickstart your screen and camera recording adventure.
+## Browser support
 
-6. **Picture-in-Picture View:** Your camera will appear in a nifty picture-in-picture view while recording the screen.
-
-7. **Save and Convert:** When you're done, click the "Stop" button and choose to either:
-   - Download directly as WEBM
-   - Convert to MP4 using FFMPEG.wasm before downloading
-
-## Browser Compatibility
-
-Record currently only works with Chrome and Chromium browsers. It leverages certain browser capabilities that may not be available in other browsers at the moment.
-
-## Support
-
-If you encounter any issues, have questions, or need assistance, please feel free to [open an issue](https://github.com/addyosmani/recorder/issues) on GitHub. We welcome your feedback and are happy to assist with any questions or concerns you may have.
-
-## Development & Contributions
-
-Excited to dive into the code and make this app even cooler? To get started, follow these steps:
-
-1. **Clone the Repository:** Fork the Record repository and clone it to your local machine using Git.
-
-   ```bash
-   git clone https://github.com/addyosmani/recorder.git
-   ```
-
-2. **Navigate to the Directory:** Move into the Record project directory.
-
-   ```bash
-   cd recorder
-   ```
-
-3. **Install Dependencies:** Install the necessary dependencies using Yarn.
-
-   ```bash
-   yarn
-   ```
-
-4. **Run the Development Server:** Start the development server with Yarn.
-
-   ```bash
-   yarn dev
-   ```
-
-5. **Make Your Changes:** Work your magic! Make the desired improvements, add features, or fix issues.
-
-6. **Create a Pull Request:** Once you're happy with your changes, create a pull request on the main Record repository. We'll review your contribution and merge it if everything looks good!
+Chromium-based browsers only (Chrome, Edge, Arc, Brave). Uses `getDisplayMedia`, `MediaStreamTrackProcessor`, and other APIs not yet broadly available in Firefox/Safari.
 
 ## Credits
 
-This project is a fork of the original [Recorder](https://github.com/contrastio/recorder) by [Contrast](https://getcontrast.io). This fork adds a number of features across camera layout, teleprompting, MP4 conversion and others.
+- Original [Recorder](https://github.com/contrastio/recorder) by [Contrast](https://getcontrast.io).
+- Forked and significantly extended by [addyosmani](https://github.com/addyosmani/recorder) — teleprompter, MP4 conversion, camera shape toggle, and more.
+- This fork (vp-recorder) adds the draggable multi-shape overlay, framing/auto face-centering, virtual background, cross-window teleprompter, audio mixer with mic level meter, and a number of UX/perf improvements.
 
 ## License
 
-Recorder is released under the [MIT License](LICENSE), allowing you to freely use, modify, and distribute the application.
-
-<br/>
-
----
-
-<br/>
-
-Time to unleash your creativity and capture those moments with Recorder! 🎬🌟 Lights, camera, action!
+MIT — see [LICENSE](LICENSE).

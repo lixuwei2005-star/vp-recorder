@@ -1,0 +1,25 @@
+.root {
+  display: grid;
+  grid-auto-flow: column;
+  align-items: center;
+  column-gap: 2px;
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: 18px;
+  padding: 2px 4px;
+  height: 36px;
+  box-sizing: border-box;
+}
+
+.root :global(.MuiIconButton-root) {
+  border: 0;
+  background-color: transparent;
+  padding: 5px;
+}
+
+.root :global(.MuiIconButton-root:hover) {
+  background-color: rgb(255 255 255 / 6%);
+}
+
+.activeButton {
+  background-color: rgb(var(--mui-palette-primary-mainChannel) / 14%) !important;
+}

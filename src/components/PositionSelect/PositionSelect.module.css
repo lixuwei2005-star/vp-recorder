@@ -4,10 +4,52 @@
   align-items: center;
   column-gap: 2px;
   border: 1px solid rgb(255 255 255 / 12%);
-  border-radius: 8px;
-  padding: 2px;
+  border-radius: 18px;
+  padding: 2px 4px;
+  height: 36px;
+  box-sizing: border-box;
+}
+
+.root :global(.MuiIconButton-root) {
+  border: 0;
+  background-color: transparent;
+  padding: 5px;
+}
+
+.root :global(.MuiIconButton-root:hover) {
+  background-color: rgb(255 255 255 / 6%);
 }
 
 .activeButton {
   background-color: rgb(var(--mui-palette-primary-mainChannel) / 14%) !important;
+}
+
+.sizeGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: 18px;
+  padding: 0 12px;
+  min-width: 160px;
+  height: 36px;
+  box-sizing: border-box;
+}
+
+.sizeLabel {
+  font-variant-numeric: tabular-nums;
+  color: rgb(255 255 255 / 70%);
+  font-size: 12px;
+  min-width: 30px;
+  text-align: right;
+}
+
+.sizeSlider {
+  flex: 1;
+}
+
+.wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }

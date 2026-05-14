@@ -1,47 +1,145 @@
 .root {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   position: fixed;
   inset: 0;
+  background: #000;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.section:last-child {
+  border-bottom: none;
+}
+
+.section[data-expanded='true'] {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.section[data-expanded='false'] {
+  flex: 0 0 auto;
+}
+
+/*
+ * When both Camera + Teleprompter are expanded, Camera shouldn't compete for
+ * extra vertical space — it's aspect-ratio constrained so growing past that
+ * just leaves dead air around it while squeezing the teleprompter controls.
+ * Pin Camera to its natural height and let Teleprompter take whatever's left.
+ * `flex-shrink: 1` so on very short windows it still yields rather than
+ * pushing the teleprompter off-screen.
+ *
+ * When teleprompter is hidden the camera should fill the whole window, so
+ * scope this cap to the teleprompter-active case only.
+ */
+.root[data-teleprompter-active='true'] .section.cameraSection[data-expanded='true'] {
+  flex: 0 1 auto;
+}
+
+.root[data-teleprompter-active='true'] .section.cameraSection[data-expanded='true'] .sectionBody {
+  /* Cap so a square / 1:1 camera doesn't balloon to width × 1 height. */
+  max-height: 50vh;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 32px;
+  padding: 0 8px;
+  background: rgba(0, 0, 0, 0.85);
+  color: rgba(255, 255, 255, 0.75);
+  flex-shrink: 0;
+}
+
+.collapseToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  border: none;
+  color: inherit;
+  font-size: 0.8rem;
+  font-weight: 500;
+  padding: 4px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.collapseToggle:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: white;
+}
+
+.sectionBody {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+}
+
+/* Camera section: keep the existing grid model so the cameraFrame + controls
+ * overlay behave as they did pre-refactor. */
+.cameraBody {
+  display: grid;
   grid-template-rows: minmax(0, 1fr);
 }
 
-.camera {
+/*
+ * Wrapper around the preview surface. Matches the in-page pipFrame model:
+ * the wrapper owns the shape (aspect-ratio + border-radius) and clips with
+ * overflow:hidden; the inner <video>/<canvas> is sized/positioned in JS
+ * (computeVideoFramingStyle) so the wrapper's [0, 100%] window lands on the
+ * same source region the composer would crop.
+ */
+.cameraFrame {
+  position: relative;
   grid-area: 1/1;
+  align-self: center;
+  justify-self: center;
+  overflow: hidden;
+  background: #000;
+}
+
+.cameraFrame[data-shape='rectangle'] {
+  width: 100%;
+  height: auto;
+  max-height: 100%;
+  aspect-ratio: var(--camera-aspect-ratio, 4 / 3);
+}
+
+.cameraFrame[data-shape='square'],
+.cameraFrame[data-shape='circle'] {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 1 / 1;
+}
+
+.cameraFrame[data-shape='circle'] {
+  border-radius: 50%;
+}
+
+.cameraFrame > video,
+.cameraFrame > canvas {
+  position: absolute;
+  display: block;
   transform: scaleX(-1);
   width: 100%;
   height: 100%;
+  left: 0;
+  top: 0;
   object-fit: cover;
+  transition:
+    width 150ms ease,
+    height 150ms ease,
+    left 150ms ease,
+    top 150ms ease;
 }
 
-.controls {
-  display: grid;
-  position: relative;
-  grid-area: 1/1;
-  grid-template-columns: 1fr;
-  grid-auto-flow: column;
-  gap: 8px;
-  align-content: end;
-  align-items: center;
-  background-image: linear-gradient(
-    to top,
-    rgb(0 0 0 / 40%),
-    rgb(0 0 0 / 0%) 120px
-  );
-  padding: 16px;
-  animation: 500ms ease fadeIn;
-}
-
-.duration:global(.MuiTypography-root) {
-  font-family: 'SF Mono', monospace;
-  font-weight: 500;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
-}

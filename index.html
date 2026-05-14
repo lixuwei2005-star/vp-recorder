@@ -30,7 +30,13 @@
     <meta property="twitter:title" content="Record" />
     <meta property="twitter:description" content="A browser-based screen recorder with picture-in-picture support" />
     <meta property="twitter:image" content="https://record.addy.ie/meta.jpg" />
-    
+
+    <style>
+      /* Reserve scrollbar gutter so transient vertical scrollbars (e.g. from a
+         tooltip portal briefly overflowing the body) can't change the
+         viewport width and cause the layout to oscillate horizontally. */
+      html { scrollbar-gutter: stable; }
+    </style>
   </head>
   <body>
     <div id="root"></div>

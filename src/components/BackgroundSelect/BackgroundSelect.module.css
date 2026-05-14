@@ -1,0 +1,144 @@
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: 18px;
+  padding: 0 14px;
+  background: transparent;
+  cursor: pointer;
+  color: rgb(255 255 255 / 70%);
+  font-size: 12px;
+  height: 36px;
+  box-sizing: border-box;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+.trigger:hover {
+  background-color: rgb(255 255 255 / 4%);
+}
+
+.triggerActive {
+  background-color: rgb(var(--mui-palette-primary-mainChannel) / 14%);
+  color: white;
+}
+
+.popover {
+  padding: 12px;
+  width: 320px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.thumb {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  background: #111;
+  overflow: hidden;
+  cursor: pointer;
+  padding: 0;
+  display: block;
+}
+
+.thumb:hover {
+  border-color: rgb(255 255 255 / 30%);
+}
+
+.thumb.thumbActive {
+  border-color: rgb(var(--mui-palette-primary-mainChannel) / 1);
+}
+
+.thumb canvas,
+.thumb img,
+.thumb .thumbFill {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.thumbLabel {
+  position: absolute;
+  inset: auto 0 0 0;
+  padding: 2px 4px;
+  background: linear-gradient(to top, rgb(0 0 0 / 60%), transparent);
+  color: white;
+  font-size: 10px;
+  text-align: center;
+  pointer-events: none;
+}
+
+.thumbIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: rgb(255 255 255 / 70%);
+}
+
+.thumbNone {
+  background:
+    linear-gradient(45deg, transparent 47.5%, rgb(255 80 80 / 70%) 47.5%, rgb(255 80 80 / 70%) 52.5%, transparent 52.5%),
+    repeating-linear-gradient(45deg, #222 0 6px, #333 6px 12px);
+}
+
+.thumbBlur {
+  background:
+    radial-gradient(circle at 30% 30%, rgb(255 220 180 / 70%) 0%, transparent 40%),
+    radial-gradient(circle at 70% 60%, rgb(120 160 230 / 70%) 0%, transparent 45%),
+    linear-gradient(135deg, #333 0%, #555 100%);
+  filter: blur(2px);
+}
+
+.section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.sectionLabel {
+  color: rgb(255 255 255 / 55%);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.divider {
+  flex: 1;
+  height: 1px;
+  background: rgb(255 255 255 / 10%);
+}
+
+.uploadInput {
+  display: none;
+}
+
+.removeUpload {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  border: 0;
+  background: rgb(0 0 0 / 70%);
+  color: white;
+  font-size: 12px;
+  line-height: 18px;
+  text-align: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.removeUpload:hover {
+  background: rgb(220 50 50 / 90%);
+}

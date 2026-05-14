@@ -8,6 +8,7 @@
   justify-content: center;
   row-gap: 24px;
   padding: 24px;
+  overflow: hidden;
 
   &.placeholder {
     grid-template-rows: minmax(0, 1fr) auto;

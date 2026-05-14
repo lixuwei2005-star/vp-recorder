@@ -7,16 +7,23 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencies & build output
 node_modules
 dist
 dist-ssr
 *.local
+
+# Env files
+.env
+.env.local
+.env.*.local
 
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
 .idea
 .DS_Store
+Thumbs.db
 *.suo
 *.ntvs*
 *.njsproj
@@ -29,3 +36,12 @@ dist-ssr
 
 # Local Netlify folder
 .netlify
+
+# Claude Code local state — worktrees absolutely must never enter the repo
+.claude/
+.claude/worktrees/
+
+# Diagnostic / debug artifacts (camera + devserver probes)
+diag-*.json
+diag-*.png
+diag-*.log

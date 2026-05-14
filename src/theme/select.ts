@@ -19,7 +19,7 @@ export const menuItem: Components<CssVarsTheme>['MuiMenuItem'] = {
 const select: Components<CssVarsTheme>['MuiSelect'] = {
   styleOverrides: {
     select: {
-      height: 48,
+      height: 36,
       paddingBlock: 0,
     },
     icon: {

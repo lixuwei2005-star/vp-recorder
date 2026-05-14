@@ -1,28 +1,29 @@
-import MenuItem from '@mui/material/MenuItem';
-import DeviceSelect from 'components/DeviceSelect';
+import IconButton from '@mui/material/IconButton';
+import Tooltip from '@mui/material/Tooltip';
+import cx from 'classnames';
+
 import { TeleprompterIcon } from 'components/ShapeSelect/icons/TeleprompterIcon';
-import { useState } from 'react';
-import Teleprompter from 'components/Teleprompter';
+import { useI18n } from 'contexts/i18n';
+import { useTeleprompter } from 'contexts/teleprompter';
+
+import styles from './TeleprompterSelect.module.css';
 
 const TeleprompterSelect = () => {
-  const [showTeleprompter, setShowTeleprompter] = useState(false);
+  const { enabled, setEnabled } = useTeleprompter();
+  const { t } = useI18n();
+  const label = enabled ? t('teleprompter.hide') : t('teleprompter.show');
 
   return (
-    <>
-      <DeviceSelect
-        startAdornment={
-          <div onClick={() => setShowTeleprompter(!showTeleprompter)} style={{ cursor: 'pointer' }}>
-            <TeleprompterIcon />
-          </div>
-        }
-        value={showTeleprompter ? 'show' : 'hide'}
-        onChange={(event) => setShowTeleprompter(event.target.value === 'show')}
+    <Tooltip title={label} placement="top">
+      <IconButton
+        className={cx(styles.button, { active: enabled })}
+        onClick={() => setEnabled(!enabled)}
+        aria-label={label}
+        aria-pressed={enabled}
       >
-        <MenuItem value="hide">Hide Teleprompter</MenuItem>
-        <MenuItem value="show">Show Teleprompter</MenuItem>
-      </DeviceSelect>
-      {showTeleprompter && <Teleprompter onClose={() => setShowTeleprompter(false)} />}
-    </>
+        <TeleprompterIcon />
+      </IconButton>
+    </Tooltip>
   );
 };
 

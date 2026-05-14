@@ -1,8 +1,5 @@
 import { useCallback, useRef } from 'react';
 
-import { useLayout } from 'contexts/layout';
-import { usePictureInPicture } from 'contexts/pictureInPicture';
-import { useRecording } from 'contexts/recording';
 import { useStreams } from 'contexts/streams';
 import { getCameraStream } from 'services/mediaDevices';
 
@@ -10,18 +7,6 @@ const useCamera = (deviceId: string, enabled: boolean) => {
   if (!enabled) {
     deviceId = '';
   }
-
-  const { layout } = useLayout();
-  const layoutRef = useRef(layout);
-  layoutRef.current = layout;
-
-  const { isRecording } = useRecording();
-  const isRecordingRef = useRef(isRecording);
-  isRecordingRef.current = isRecording;
-
-  const { pipWindow } = usePictureInPicture();
-  const pipWindowRef = useRef(pipWindow);
-  pipWindowRef.current = pipWindow;
 
   const { cameraStream, setCameraStream } = useStreams();
 
@@ -39,15 +24,24 @@ const useCamera = (deviceId: string, enabled: boolean) => {
       if (deviceId === deviceIdRef.current) {
         return;
       }
-      if (isRecordingRef.current && layoutRef.current !== 'screenOnly') {
-        pipWindowRef.current?.close();
-      }
-      cameraStreamRef.current?.getTracks().forEach((track) => track.stop());
-      setCameraStream(null);
+
+      let newStream: MediaStream | null = null;
       if (deviceId) {
-        const cameraStream = await getCameraStream(deviceId);
-        setCameraStream(cameraStream);
+        try {
+          newStream = await getCameraStream(deviceId);
+        } catch (err) {
+          console.warn('useCamera: failed to acquire camera', err);
+          return;
+        }
       }
+
+      const oldStream = cameraStreamRef.current;
+
+      // Publish new stream first so the recording composer & previews
+      // hot-swap onto it; only then release the old device.
+      setCameraStream(newStream);
+
+      oldStream?.getTracks().forEach((track) => track.stop());
     },
     [setCameraStream],
   );

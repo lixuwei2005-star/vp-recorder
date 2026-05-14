@@ -1,11 +1,15 @@
-import { createContext, useContext, useRef, useState } from 'react';
+import { createContext, useContext, useEffect, useRef, useState } from 'react';
 
 import { RecordingModal } from 'components/RecordingModal';
-import { composeStreams } from 'services/composer';
+import { getAudioMixer } from 'services/audioMixer';
+import { composeStreams, type ComposerHandle } from 'services/composer';
 
+import { useCameraFraming } from './cameraFraming';
 import { useCameraPosition } from './cameraPosition';
+import { useCameraShape } from './cameraShape';
 import { useLayout } from './layout';
 import { useStreams } from './streams';
+import { useVirtualBackground } from './virtualBackground';
 
 type RecordingContextType = {
   isRecording: boolean;
@@ -32,21 +36,67 @@ export const RecordingProvider = ({ children }: RecordingProviderProps) => {
   const [isPaused, setIsPaused] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [recordingBlob, setRecordingBlob] = useState<Blob | null>(null);
-  const { cameraStream, microphoneStream, screenshareStream } = useStreams();
-  const { positionRef: cameraPositionRef } = useCameraPosition();
+  const { cameraStream, screenshareStream } = useStreams();
+  const { positionRef: cameraPositionRef, sizeRef: cameraSizeRef } =
+    useCameraPosition();
+  const { shapeRef: cameraShapeRef } = useCameraShape();
+  const { framingRef: cameraFramingRef } = useCameraFraming();
+  const {
+    optionRef: virtualBackgroundOptionRef,
+    imageElementRef: virtualBackgroundImageRef,
+  } = useVirtualBackground();
 
   const mediaRecorder = useRef<MediaRecorder>();
+  const composerHandleRef = useRef<ComposerHandle | null>(null);
+
+  // Push camera stream changes into the live composer so toggling / switching
+  // the camera mid-recording doesn't tear down the recording.
+  useEffect(() => {
+    if (!isRecording || !composerHandleRef.current) return;
+    if (layout === 'screenOnly') return;
+    composerHandleRef.current.setCameraStream(cameraStream);
+  }, [cameraStream, isRecording, layout]);
+
+  // Guard against accidental refresh/close while a recording is active or
+  // the post-recording preview still holds an un-saved blob.
+  const hasUnsavedWork =
+    isRecording || (isModalOpen && recordingBlob !== null);
+  useEffect(() => {
+    if (!hasUnsavedWork) return;
+    const handler = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      // Legacy requirement: some browsers only show the prompt when
+      // returnValue is set to a non-empty string.
+      event.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [hasUnsavedWork]);
 
   const startRecording = () => {
     setIsRecording(true);
 
-    const composedStream = composeStreams(
+    const audioMixer = getAudioMixer();
+    const handle = composeStreams(
       layout === 'screenOnly' ? null : cameraStream,
-      microphoneStream,
+      audioMixer,
       layout === 'cameraOnly' ? null : screenshareStream,
-      { cameraPositionRef },
+      {
+        cameraPositionRef,
+        cameraSizeRef,
+        cameraShapeRef,
+        cameraFramingRef,
+        virtualBackgroundOptionRef,
+        virtualBackgroundImageRef,
+      },
+      // The composer no longer ends naturally when the screen track ends
+      // (output is camera-driven now). User stopping the OS-level screen
+      // share is still a valid end-of-recording signal.
+      { onScreenshareEnded: () => stopRecording() },
     );
-    mediaRecorder.current = new MediaRecorder(composedStream, {
+    composerHandleRef.current = handle;
+
+    mediaRecorder.current = new MediaRecorder(handle.outputStream, {
       mimeType: 'video/webm; codecs=vp9',
       videoBitsPerSecond: 8e6,
     });
@@ -58,9 +108,11 @@ export const RecordingProvider = ({ children }: RecordingProviderProps) => {
     };
 
     mediaRecorder.current.onstop = () => {
-      composedStream
+      handle.outputStream
         .getVideoTracks()
         .forEach((composedTrack) => composedTrack.stop());
+      handle.dispose();
+      composerHandleRef.current = null;
 
       const blob = new Blob(chunks);
 
@@ -72,7 +124,10 @@ export const RecordingProvider = ({ children }: RecordingProviderProps) => {
   };
 
   const stopRecording = () => {
-    mediaRecorder.current?.stop();
+    const recorder = mediaRecorder.current;
+    if (recorder && recorder.state !== 'inactive') {
+      recorder.stop();
+    }
     setIsRecording(false);
     setIsPaused(false);
   };
