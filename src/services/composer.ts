@@ -36,7 +36,10 @@ export const composeStreams = (
     const screenshareReader = screenshareProcessor.readable.getReader();
 
     const canvas = new OffscreenCanvas(0, 0);
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', {
+      alpha: false,
+      desynchronized: true,
+    });
 
     if (!ctx) {
       throw new Error('Canvas API not supported');
@@ -121,6 +124,9 @@ export const composeStreams = (
       .pipeThrough(transformer)
       .pipeTo(recordingGenerator.writable);
   } else if (cameraProcessor) {
+    // TODO: camera-only recording does not need the WebCodecs processor/generator
+    // round-trip. Pass the raw cameraStream through to MediaRecorder instead to
+    // skip an unnecessary decode/encode hop.
     cameraProcessor.readable.pipeTo(recordingGenerator.writable);
   } else if (screenshareProcessor) {
     screenshareProcessor.readable.pipeTo(recordingGenerator.writable);

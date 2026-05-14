@@ -5,6 +5,7 @@ import Placeholder from 'components/Placeholder';
 import { useLayout } from 'contexts/layout';
 import { useStreams } from 'contexts/streams';
 import { useCameraShape } from 'contexts/cameraShape';
+import { usePictureInPicture } from 'contexts/pictureInPicture';
 import useVideoSource from 'hooks/useVideoSource';
 import {
   CAMERA_BORDER_RADIUS,
@@ -25,7 +26,10 @@ type ScreenshareSize = {
 const VideoStreams = () => {
   const { layout } = useLayout();
   const { cameraStream, screenshareStream } = useStreams();
-  const updateCameraSource = useVideoSource(cameraStream);
+  const { pipWindow } = usePictureInPicture();
+  // When the PiP window is open, it owns the camera <video>. Avoid binding the
+  // same MediaStream here too — two <video> elements means two decoders.
+  const updateCameraSource = useVideoSource(pipWindow ? null : cameraStream);
   const updateScreenshareSource = useVideoSource(screenshareStream);
   const [screenshareSize, setScreenshareSize] =
     useState<ScreenshareSize | null>(null);

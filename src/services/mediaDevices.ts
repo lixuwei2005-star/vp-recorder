@@ -51,10 +51,11 @@ export const getDeviceId = (
 export const getCameraStream = (deviceId: string): Promise<MediaStream> => {
   return navigator.mediaDevices.getUserMedia({
     video: {
-      deviceId,
-      aspectRatio: 16 / 9,
-      width: 3840,
-      height: 2160,
+      deviceId: deviceId ? { exact: deviceId } : undefined,
+      width: { ideal: 1280, max: 1920 },
+      height: { ideal: 720, max: 1080 },
+      frameRate: { ideal: 30, max: 30 },
+      facingMode: 'user',
     },
     audio: false,
   });
@@ -62,7 +63,14 @@ export const getCameraStream = (deviceId: string): Promise<MediaStream> => {
 
 export const getMicrophoneStream = (deviceId: string): Promise<MediaStream> => {
   return navigator.mediaDevices.getUserMedia({
-    audio: { deviceId },
+    audio: {
+      deviceId: deviceId ? { exact: deviceId } : undefined,
+      echoCancellation: true,
+      noiseSuppression: true,
+      autoGainControl: true,
+      sampleRate: 48000,
+      channelCount: 1,
+    },
     video: false,
   });
 };
