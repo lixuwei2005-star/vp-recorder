@@ -53,6 +53,7 @@ export type ComposeCallbacks = {
 export type ComposerHandle = {
   outputStream: MediaStream;
   setCameraStream: (stream: MediaStream | null) => void;
+  setScreenshareStream: (stream: MediaStream | null) => void;
   dispose: () => void;
 };
 
@@ -416,6 +417,9 @@ export const composeStreams = (
         setCameraStream: () => {
           // cameraOnly path: hot-swap not supported (see UI guard).
         },
+        setScreenshareStream: () => {
+          // cameraOnly path has no screen source.
+        },
         dispose: () => {
           if (disposed) return;
           disposed = true;
@@ -450,6 +454,9 @@ export const composeStreams = (
       setCameraStream: () => {
         // cameraOnly path: hot-swap not supported (see UI guard).
       },
+      setScreenshareStream: () => {
+        // cameraOnly path has no screen source.
+      },
       dispose: () => {
         disposed = true;
       },
@@ -473,10 +480,21 @@ export const composeStreams = (
   // recording keeps producing output. Pure screenOnly layout passes a null
   // camera stream up front and runs in this fallback from the start.
 
-  const screenProcessor = new MediaStreamTrackProcessor({
-    track: screenshareTrack,
-  });
-  const screenReader = screenProcessor.readable.getReader();
+  // Track + reader for the active screenshare. Both are mutable so the caller
+  // can hot-swap to a different screen source (window/tab/monitor) mid-record
+  // without tearing down the recording. `screenLoopGen` is bumped on each
+  // swap so any in-flight read loop bound to the previous reader exits.
+  //
+  // Explicit `MediaStreamVideoTrack` annotation steers TS to the video
+  // overload of `MediaStreamTrackProcessor` (otherwise the wider
+  // `MediaStreamTrack` from `getVideoTracks()` matches the audio overload).
+  let activeScreenshareTrack: MediaStreamVideoTrack =
+    screenshareTrack as MediaStreamVideoTrack;
+  let screenProcessor: MediaStreamTrackProcessor<VideoFrame> =
+    new MediaStreamTrackProcessor({ track: activeScreenshareTrack });
+  let screenReader: ReadableStreamDefaultReader<VideoFrame> =
+    screenProcessor.readable.getReader();
+  let screenLoopGen = 0;
   const writer = recordingGenerator.writable.getWriter();
 
   const canvas = new OffscreenCanvas(0, 0);
@@ -555,13 +573,16 @@ export const composeStreams = (
     }
   };
 
-  const runScreenLoop = async () => {
+  const runScreenLoop = async (
+    reader: ReadableStreamDefaultReader<VideoFrame>,
+    gen: number,
+  ) => {
     try {
-      while (!disposed) {
-        const result = await screenReader.read();
+      while (!disposed && gen === screenLoopGen) {
+        const result = await reader.read();
         if (result.done) break;
         const frame = result.value;
-        if (disposed) {
+        if (disposed || gen !== screenLoopGen) {
           frame.close();
           break;
         }
@@ -579,8 +600,12 @@ export const composeStreams = (
     } catch {
       /* reader cancelled or screen track ended */
     } finally {
-      latestScreenFrame?.close();
-      latestScreenFrame = undefined;
+      // Only the active loop owns latestScreenFrame; an old loop being torn
+      // down by a swap must not clobber the new loop's held frame.
+      if (gen === screenLoopGen) {
+        latestScreenFrame?.close();
+        latestScreenFrame = undefined;
+      }
     }
   };
 
@@ -653,9 +678,9 @@ export const composeStreams = (
   const handleScreenshareEnded = () => {
     callbacks.onScreenshareEnded?.();
   };
-  screenshareTrack.addEventListener('ended', handleScreenshareEnded);
+  activeScreenshareTrack.addEventListener('ended', handleScreenshareEnded);
 
-  runScreenLoop();
+  runScreenLoop(screenReader, screenLoopGen);
   if (initialCameraStream) startCameraDriver(initialCameraStream);
 
   const setCameraStream = (stream: MediaStream | null) => {
@@ -664,10 +689,35 @@ export const composeStreams = (
     if (stream) startCameraDriver(stream);
   };
 
+  // Hot-swap the screen source. Detach the old `ended` listener first so
+  // cancelling the old reader (which lets the OS-level track stop naturally)
+  // doesn't cascade into stopRecording. Bumping screenLoopGen retires any
+  // in-flight read on the previous reader before we point at the new one.
+  const setScreenshareStream = (stream: MediaStream | null) => {
+    if (disposed) return;
+    if (!stream) return;
+    const newTrack = stream.getVideoTracks()[0];
+    if (!newTrack || newTrack === activeScreenshareTrack) return;
+    activeScreenshareTrack.removeEventListener('ended', handleScreenshareEnded);
+    screenLoopGen += 1;
+    try {
+      screenReader.cancel().catch(() => {});
+    } catch {
+      /* noop */
+    }
+    activeScreenshareTrack = newTrack as MediaStreamVideoTrack;
+    newTrack.addEventListener('ended', handleScreenshareEnded);
+    screenProcessor = new MediaStreamTrackProcessor({
+      track: activeScreenshareTrack,
+    });
+    screenReader = screenProcessor.readable.getReader();
+    runScreenLoop(screenReader, screenLoopGen);
+  };
+
   const dispose = () => {
     if (disposed) return;
     disposed = true;
-    screenshareTrack.removeEventListener('ended', handleScreenshareEnded);
+    activeScreenshareTrack.removeEventListener('ended', handleScreenshareEnded);
     stopCameraDriver();
     try {
       screenReader.cancel().catch(() => {});
@@ -685,5 +735,10 @@ export const composeStreams = (
     }
   };
 
-  return { outputStream: attachAudio(), setCameraStream, dispose };
+  return {
+    outputStream: attachAudio(),
+    setCameraStream,
+    setScreenshareStream,
+    dispose,
+  };
 };

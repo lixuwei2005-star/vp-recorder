@@ -8,6 +8,7 @@ import MicrophoneSelect from 'components/MicrophoneSelect';
 import PauseButton from 'components/PauseButton';
 import PositionSelect from 'components/PositionSelect';
 import RecordingTimer from 'components/RecordingTimer';
+import ScreenshareSwitchButton from 'components/ScreenshareSwitchButton';
 import ShapeSelect from 'components/ShapeSelect';
 import TeleprompterSelect from 'components/TeleprompterSelect';
 import { useStreams } from 'contexts/streams';
@@ -19,6 +20,7 @@ const Footer = () => {
   return (
     <footer className={styles.root}>
       <div className={styles.leftSlot}>
+        <ScreenshareSwitchButton />
         <LanguageSwitcher />
       </div>
       <div className={styles.recordCluster}>

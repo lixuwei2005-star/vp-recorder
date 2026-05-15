@@ -37,6 +37,7 @@ const en: Dict = {
   'record.start': 'Start recording',
   'record.stop': 'Stop recording',
   'lang.label': 'Language',
+  'screenshare.switch': 'Switch shared screen',
 };
 
 const zh: Dict = {
@@ -70,6 +71,7 @@ const zh: Dict = {
   'record.start': '开始录制',
   'record.stop': '停止录制',
   'lang.label': '语言',
+  'screenshare.switch': '切换共享屏幕',
 };
 
 const DICTS: Record<Lang, Dict> = { zh, en };

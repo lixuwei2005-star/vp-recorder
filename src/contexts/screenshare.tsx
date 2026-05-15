@@ -7,6 +7,7 @@ import { useStreams } from './streams';
 
 type ScreenshareContextType = {
   startScreenshare: () => Promise<void>;
+  switchScreenshare: () => Promise<void>;
 };
 
 const ScreenshareContext = createContext<ScreenshareContextType | undefined>(
@@ -19,6 +20,8 @@ type ScreenshareProviderProps = {
 
 export const ScreenshareProvider = ({ children }: ScreenshareProviderProps) => {
   const { screenshareStream, setScreenshareStream } = useStreams();
+  const screenshareStreamRef = useRef(screenshareStream);
+  screenshareStreamRef.current = screenshareStream;
 
   const { layout } = useLayout();
   const layoutRef = useRef(layout);
@@ -32,6 +35,15 @@ export const ScreenshareProvider = ({ children }: ScreenshareProviderProps) => {
   const pipWindowRef = useRef(pipWindow);
   pipWindowRef.current = pipWindow;
 
+  const attachEndedHandler = (stream: MediaStream) => {
+    stream.getVideoTracks()[0].onended = () => {
+      setScreenshareStream(null);
+      if (isRecordingRef.current && layoutRef.current !== 'cameraOnly') {
+        pipWindowRef.current?.close();
+      }
+    };
+  };
+
   const startScreenshare = async () => {
     if (!pipWindowRef.current) {
       pipWindowRef.current = await requestPipWindow();
@@ -44,12 +56,7 @@ export const ScreenshareProvider = ({ children }: ScreenshareProviderProps) => {
         video: true,
         audio: false,
       });
-      stream.getVideoTracks()[0].onended = () => {
-        setScreenshareStream(null);
-        if (isRecordingRef.current && layoutRef.current !== 'cameraOnly') {
-          pipWindowRef.current?.close();
-        }
-      };
+      attachEndedHandler(stream);
       setScreenshareStream(stream);
     } catch {
       // Happens when the user aborts the screenshare
@@ -59,8 +66,38 @@ export const ScreenshareProvider = ({ children }: ScreenshareProviderProps) => {
     }
   };
 
+  // Open the picker again, replacing the existing stream. Cancelling the
+  // picker leaves the current screenshare untouched (so the user can dismiss
+  // by accident without dropping their recording).
+  const switchScreenshare = async () => {
+    let nextStream: MediaStream;
+    try {
+      nextStream = await navigator.mediaDevices.getDisplayMedia({
+        video: true,
+        audio: false,
+      });
+    } catch {
+      return;
+    }
+    const previous = screenshareStreamRef.current;
+    // Detach the old onended BEFORE stopping, otherwise stopping the track
+    // fires the cleanup that would close the PiP window / drop the stream.
+    if (previous) {
+      previous.getVideoTracks().forEach((t) => {
+        t.onended = null;
+      });
+    }
+    attachEndedHandler(nextStream);
+    setScreenshareStream(nextStream);
+    // Stop old tracks last so the composer's hot-swap (driven by the state
+    // change above) has a chance to attach to the new track first.
+    if (previous) {
+      previous.getTracks().forEach((t) => t.stop());
+    }
+  };
+
   return (
-    <ScreenshareContext.Provider value={{ startScreenshare }}>
+    <ScreenshareContext.Provider value={{ startScreenshare, switchScreenshare }}>
       {children}
     </ScreenshareContext.Provider>
   );

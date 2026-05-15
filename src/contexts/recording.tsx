@@ -57,6 +57,15 @@ export const RecordingProvider = ({ children }: RecordingProviderProps) => {
     composerHandleRef.current.setCameraStream(cameraStream);
   }, [cameraStream, isRecording, layout]);
 
+  // Same idea for the screen source: when the user switches to a different
+  // window/tab/monitor mid-recording, hand the new stream to the composer
+  // instead of restarting the recording.
+  useEffect(() => {
+    if (!isRecording || !composerHandleRef.current) return;
+    if (layout === 'cameraOnly') return;
+    composerHandleRef.current.setScreenshareStream(screenshareStream);
+  }, [screenshareStream, isRecording, layout]);
+
   // Guard against accidental refresh/close while a recording is active or
   // the post-recording preview still holds an un-saved blob.
   const hasUnsavedWork =
