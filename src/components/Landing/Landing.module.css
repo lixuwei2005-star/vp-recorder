@@ -443,6 +443,95 @@
   margin: 0 8px;
 }
 
+/* Unsupported-browser modal */
+.dialogBackdrop {
+  display: flex;
+  position: fixed;
+  inset: 0;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  background-color: rgb(0 0 0 / 70%);
+  backdrop-filter: blur(6px);
+  padding: 24px;
+  animation: dialogFade 180ms ease;
+}
+
+@keyframes dialogFade {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.dialogPanel {
+  display: flex;
+  position: relative;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+  border: 1px solid var(--landing-border-strong);
+  border-radius: 18px;
+  box-shadow: 0 30px 90px rgb(0 0 0 / 60%);
+  background-color: var(--landing-bg-elev);
+  padding: 36px 32px 28px;
+  max-width: 460px;
+  text-align: center;
+}
+
+.dialogIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgb(255 80 101 / 20%), rgb(255 80 101 / 5%));
+  width: 56px;
+  height: 56px;
+  color: var(--landing-accent-2);
+}
+
+.dialogTitle {
+  margin: 0;
+  letter-spacing: -0.01em;
+  color: var(--landing-fg);
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.dialogBody {
+  margin: 0;
+  line-height: 1.6;
+  color: var(--landing-fg-muted);
+  font-size: 14px;
+}
+
+.dialogApiList {
+  margin: 4px 0 8px;
+  padding: 0;
+  list-style: none;
+  line-height: 1.9;
+  color: var(--landing-fg-dim);
+  font-size: 13px;
+}
+
+.dialogActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 12px;
+}
+
+.dialogActions .btnPrimary,
+.dialogActions .btnSecondary {
+  padding: 10px 22px;
+  font-size: 14px;
+}
+
 /* Responsive */
 @media (width <= 900px) {
   .featuresGrid {

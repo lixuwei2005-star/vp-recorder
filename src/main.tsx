@@ -64,7 +64,9 @@ createRoot(document.getElementById('root') as HTMLElement).render(
             <App />
           </Compose>
         ) : (
-          <BrowserNotSupported />
+          <I18nProvider>
+            <BrowserNotSupported />
+          </I18nProvider>
         )}
       </CssVarsProvider>
     </StyledEngineProvider>

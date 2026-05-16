@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import {
+  AlertTriangle,
   ArrowRight,
   ChevronDown,
   Github,
@@ -19,6 +20,12 @@ import { enterApp } from 'services/landingRoute';
 
 import styles from './Landing.module.css';
 
+const isBrowserSupported =
+  typeof window !== 'undefined' &&
+  'documentPictureInPicture' in window &&
+  'MediaStreamTrackProcessor' in window &&
+  'MediaStreamTrackGenerator' in window;
+
 const GITHUB_URL = 'https://github.com/lixuwei2005-star/vp-recorder';
 
 const FEATURE_ICONS = [Layers, ScanFace, Sparkles, ScrollText, Lock, Video];
@@ -36,8 +43,13 @@ const FAQ_KEYS = ['q1', 'q2', 'q3', 'q4', 'q5'] as const;
 const Landing = () => {
   const { t } = useI18n();
   const [openFaq, setOpenFaq] = useState<string | null>('q1');
+  const [unsupportedOpen, setUnsupportedOpen] = useState(false);
 
   const handleStart = () => {
+    if (!isBrowserSupported) {
+      setUnsupportedOpen(true);
+      return;
+    }
     enterApp();
   };
 
@@ -263,6 +275,51 @@ const Landing = () => {
           <span>{t('landing.footer.license')}</span>
         </div>
       </footer>
+
+      {unsupportedOpen && (
+        <div
+          className={styles.dialogBackdrop}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="landing-unsupported-title"
+          onClick={() => setUnsupportedOpen(false)}
+        >
+          <div
+            className={styles.dialogPanel}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className={styles.dialogIcon}>
+              <AlertTriangle size={28} />
+            </div>
+            <h2 id="landing-unsupported-title" className={styles.dialogTitle}>
+              {t('browser.notSupportedTitle')}
+            </h2>
+            <p className={styles.dialogBody}>{t('browser.notSupportedBody')}</p>
+            <ul className={styles.dialogApiList}>
+              <li>Document Picture-in-Picture API</li>
+              <li>MediaStreamTrack Processor API</li>
+              <li>MediaStreamTrack Generator API</li>
+            </ul>
+            <div className={styles.dialogActions}>
+              <a
+                className={styles.btnPrimary}
+                href="https://www.google.com/chrome/"
+                target="_blank"
+                rel="noreferrer"
+              >
+                {t('browser.openChrome')}
+              </a>
+              <button
+                type="button"
+                className={styles.btnSecondary}
+                onClick={() => setUnsupportedOpen(false)}
+              >
+                {t('tp.close')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
