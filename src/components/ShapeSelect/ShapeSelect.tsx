@@ -3,28 +3,31 @@ import Tooltip from '@mui/material/Tooltip';
 import { Circle, RectangleHorizontal, Square } from 'lucide-react';
 
 import { CameraShape, useCameraShape } from 'contexts/cameraShape';
+import { useI18n } from 'contexts/i18n';
 
 import styles from './ShapeSelect.module.css';
 
 type ShapeSpec = {
   value: CameraShape;
-  label: string;
+  labelKey: string;
   Icon: typeof RectangleHorizontal;
 };
 
 const SHAPES: ShapeSpec[] = [
-  { value: 'rectangle', label: 'Rectangle', Icon: RectangleHorizontal },
-  { value: 'square', label: 'Square', Icon: Square },
-  { value: 'circle', label: 'Circle', Icon: Circle },
+  { value: 'rectangle', labelKey: 'shape.rectangle', Icon: RectangleHorizontal },
+  { value: 'square', labelKey: 'shape.square', Icon: Square },
+  { value: 'circle', labelKey: 'shape.circle', Icon: Circle },
 ];
 
 const ShapeSelect = () => {
   const { shape, setShape } = useCameraShape();
+  const { t } = useI18n();
 
   return (
     <div className={styles.root}>
-      {SHAPES.map(({ value, label, Icon }) => {
+      {SHAPES.map(({ value, labelKey, Icon }) => {
         const isActive = shape === value;
+        const label = t(labelKey);
         return (
           <Tooltip key={value} title={label}>
             <IconButton

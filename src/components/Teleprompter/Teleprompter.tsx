@@ -22,6 +22,7 @@ import {
   Type,
   GripHorizontal,
 } from 'lucide-react';
+import { useI18n } from 'contexts/i18n';
 import { usePictureInPicture } from 'contexts/pictureInPicture';
 import styles from './Teleprompter.module.css';
 import useTeleprompterShortcuts, {
@@ -41,11 +42,11 @@ const FONT_SIZE_STEP = 4;
 const DEFAULT_FONT_SIZE = 32;
 
 const COLOR_PRESETS = [
-  { name: 'White', value: '#ffffff' },
-  { name: 'Warm Yellow', value: '#ffe27a' },
-  { name: 'Soft Green', value: '#b5e8a8' },
-  { name: 'Light Cyan', value: '#a6e3ff' },
-  { name: 'Amber', value: '#ffb24d' },
+  { nameKey: 'tp.color.white', value: '#ffffff' },
+  { nameKey: 'tp.color.warmYellow', value: '#ffe27a' },
+  { nameKey: 'tp.color.softGreen', value: '#b5e8a8' },
+  { nameKey: 'tp.color.lightCyan', value: '#a6e3ff' },
+  { nameKey: 'tp.color.amber', value: '#ffb24d' },
 ] as const;
 const DEFAULT_COLOR = COLOR_PRESETS[0].value;
 
@@ -59,6 +60,9 @@ const SIZE_MIN_H = 240;
 const SIZE_MAX_H = 1000;
 const DEFAULT_WIDTH = 600;
 const DEFAULT_HEIGHT = 480;
+// When resizing, leave at least this much visible body above the controls so
+// the user doesn't squeeze the text area to 0 px.
+const BODY_MIN_VISIBLE_PX = 60;
 
 type PersistedShape = {
   text: string;
@@ -110,6 +114,7 @@ export function Teleprompter({
 }: TeleprompterProps) {
   const isInline = variant === 'inline';
   const { pipWindow } = usePictureInPicture();
+  const { t } = useI18n();
   const persisted = useMemo(loadPersisted, []);
   const [text, setText] = useState<string>(persisted.text ?? '');
   const [mode, setMode] = useState<TeleprompterMode>(
@@ -140,6 +145,13 @@ export function Teleprompter({
   const scrollRef = useRef<HTMLDivElement>(null);
   const scrollAccumRef = useRef(0);
   const dragControls = useDragControls();
+  const dragBarRef = useRef<HTMLDivElement>(null);
+  const controlsRef = useRef<HTMLDivElement>(null);
+  const bodyRef = useRef<HTMLDivElement>(null);
+  // The smallest height at which dragBar + controls fit fully. Computed from
+  // the actual rendered chrome so wrapping rows / settings panel can't be
+  // clipped by overflow: hidden on .content.
+  const [chromeMinH, setChromeMinH] = useState(SIZE_MIN_H);
 
   // Persistence ----------------------------------------------------------
   useEffect(() => {
@@ -186,6 +198,60 @@ export function Teleprompter({
   useEffect(() => {
     if (mode === 'manual' && isPlaying) setIsPlaying(false);
   }, [mode, isPlaying]);
+
+  // Track the rendered chrome height (dragBar + controls). The controls block
+  // grows when its row wraps at narrow widths or when the settings panel
+  // opens, so a static SIZE_MIN_H can't cover every case. We observe and
+  // re-clamp size.height whenever it changes.
+  useEffect(() => {
+    if (isInline) return;
+    const controlsEl = controlsRef.current;
+    if (!controlsEl) return;
+
+    const recompute = () => {
+      const dh = dragBarRef.current?.offsetHeight ?? 0;
+      const ch = controlsEl.offsetHeight;
+      const next = Math.max(SIZE_MIN_H, dh + ch + BODY_MIN_VISIBLE_PX);
+      setChromeMinH((prev) => (prev === next ? prev : next));
+    };
+
+    recompute();
+    const ro = new ResizeObserver(recompute);
+    ro.observe(controlsEl);
+    if (dragBarRef.current) ro.observe(dragBarRef.current);
+    return () => ro.disconnect();
+  }, [isInline, settingsOpen]);
+
+  // When chromeMinH grows past the current height (e.g. user opens settings
+  // panel while the box is short), push the box taller so nothing clips.
+  useEffect(() => {
+    if (isInline) return;
+    setSize((s) =>
+      s.height < chromeMinH ? { ...s, height: chromeMinH } : s,
+    );
+  }, [chromeMinH, isInline]);
+
+  // Inline mode: controls are absolutely pinned to the bottom of the box so
+  // they can never be pushed out of view by a small PiP window. We reserve
+  // matching space at the bottom of the body so its content (textarea / text
+  // scroll area) doesn't render behind the controls bar.
+  useEffect(() => {
+    if (!isInline) return;
+    const controlsEl = controlsRef.current;
+    const bodyEl = bodyRef.current;
+    if (!controlsEl || !bodyEl) return;
+
+    const applyPadding = () => {
+      bodyEl.style.paddingBottom = `${controlsEl.offsetHeight}px`;
+    };
+    applyPadding();
+    const ro = new ResizeObserver(applyPadding);
+    ro.observe(controlsEl);
+    return () => {
+      ro.disconnect();
+      bodyEl.style.paddingBottom = '';
+    };
+  }, [isInline, settingsOpen, showInput]);
 
   // Actions --------------------------------------------------------------
   const startReading = useCallback(() => {
@@ -286,7 +352,7 @@ export function Teleprompter({
         if (axis === 'y' || axis === 'xy') {
           next.height = clamp(
             startH + (mv.clientY - startY),
-            SIZE_MIN_H,
+            chromeMinH,
             SIZE_MAX_H,
           );
         }
@@ -301,7 +367,7 @@ export function Teleprompter({
       window.addEventListener('pointermove', onMove);
       window.addEventListener('pointerup', onUp);
     },
-    [size.width, size.height],
+    [size.width, size.height, chromeMinH],
   );
 
   // Keyboard shortcuts ---------------------------------------------------
@@ -323,7 +389,11 @@ export function Teleprompter({
   const speedDisabled = mode !== 'auto';
 
   const contentStyle = isInline
-    ? undefined
+    ? // backdropFilter on .content establishes a containing block for fixed
+      // descendants, which would anchor the controls bar to .content instead
+      // of the PiP viewport. Disable it in inline mode so position: fixed
+      // really targets the PiP window.
+      ({ backdropFilter: 'none', WebkitBackdropFilter: 'none' } as const)
     : { width: size.width, height: size.height };
 
   const body = (
@@ -332,27 +402,31 @@ export function Teleprompter({
       style={contentStyle}
     >
       {!isInline && (
-        <div className={styles.dragBar} onPointerDown={startDrag}>
+        <div
+          ref={dragBarRef}
+          className={styles.dragBar}
+          onPointerDown={startDrag}
+        >
           <span className={styles.dragGrip} aria-hidden="true">
             <GripHorizontal className="h-4 w-4" />
           </span>
           <button
             className={styles.closeButton}
             onClick={handleClose}
-            title="Close"
+            title={t('tp.close')}
           >
             <X className="h-4 w-4" />
           </button>
         </div>
       )}
 
-      <div className={styles.body}>
+      <div ref={bodyRef} className={styles.body}>
         {showInput ? (
           <div className={styles.inputContainer}>
             <textarea
               value={text}
               onChange={(e) => setText(e.target.value)}
-              placeholder="Start typing or paste text here..."
+              placeholder={t('tp.placeholder')}
               className={styles.textarea}
               spellCheck="false"
             />
@@ -373,7 +447,21 @@ export function Teleprompter({
         )}
       </div>
 
-      <div className={styles.controls}>
+      <div
+        ref={controlsRef}
+        className={styles.controls}
+        style={
+          isInline
+            ? {
+                position: 'fixed',
+                bottom: 0,
+                left: 0,
+                right: 0,
+                zIndex: 100,
+              }
+            : undefined
+        }
+      >
         <div className={styles.controlsRow}>
           <div className={styles.modeToggle} role="tablist">
             <button
@@ -382,7 +470,7 @@ export function Teleprompter({
               className={`${styles.modeButton} ${mode === 'auto' ? styles.modeButtonActive : ''}`}
               onClick={() => setMode('auto')}
             >
-              Auto
+              {t('tp.auto')}
             </button>
             <button
               role="tab"
@@ -390,7 +478,7 @@ export function Teleprompter({
               className={`${styles.modeButton} ${mode === 'manual' ? styles.modeButtonActive : ''}`}
               onClick={() => setMode('manual')}
             >
-              Manual
+              {t('tp.manual')}
             </button>
           </div>
 
@@ -402,7 +490,7 @@ export function Teleprompter({
               className={styles.controlButton}
               onClick={() => changeSpeedLevel(-1)}
               disabled={speedDisabled}
-              title="Slower ([)"
+              title={t('tp.slower')}
             >
               <Minus className="h-4 w-4" />
             </button>
@@ -411,14 +499,14 @@ export function Teleprompter({
               className={styles.controlButton}
               onClick={() => changeSpeedLevel(1)}
               disabled={speedDisabled}
-              title="Faster (])"
+              title={t('tp.faster')}
             >
               <Plus className="h-4 w-4" />
             </button>
             <button
               className={styles.controlButton}
               onClick={resetTeleprompter}
-              title="Reset"
+              title={t('tp.reset')}
             >
               <RotateCcw className="h-4 w-4" />
             </button>
@@ -428,14 +516,14 @@ export function Teleprompter({
             <button
               className={styles.controlButton}
               onClick={() => seek(-1)}
-              title="Rewind (PgUp)"
+              title={t('tp.rewind')}
             >
               <Rewind className="h-5 w-5" />
             </button>
             <button
               className={styles.controlButton}
               onClick={togglePlay}
-              title={mode === 'auto' ? 'Play / Pause (Space)' : 'Start reading'}
+              title={mode === 'auto' ? t('tp.playPause') : t('tp.startReading')}
             >
               {isPlaying ? (
                 <Pause className="h-6 w-6" />
@@ -446,14 +534,14 @@ export function Teleprompter({
             <button
               className={styles.controlButton}
               onClick={() => seek(1)}
-              title="Forward (PgDn)"
+              title={t('tp.forward')}
             >
               <FastForward className="h-5 w-5" />
             </button>
             <button
               className={`${styles.controlButton} ${settingsOpen ? styles.controlButtonActive : ''}`}
               onClick={() => setSettingsOpen((s) => !s)}
-              title="Text settings"
+              title={t('tp.textSettings')}
             >
               <SettingsIcon className="h-5 w-5" />
             </button>
@@ -464,12 +552,12 @@ export function Teleprompter({
           <div className={styles.settingsPanel}>
             <div className={styles.settingsRow}>
               <span className={styles.settingsLabel}>
-                <Type className="h-4 w-4" /> Size
+                <Type className="h-4 w-4" /> {t('tp.size')}
               </span>
               <button
                 className={styles.controlButton}
                 onClick={() => changeFontSize(-FONT_SIZE_STEP)}
-                title="Smaller"
+                title={t('tp.smaller')}
               >
                 <Minus className="h-4 w-4" />
               </button>
@@ -477,24 +565,27 @@ export function Teleprompter({
               <button
                 className={styles.controlButton}
                 onClick={() => changeFontSize(FONT_SIZE_STEP)}
-                title="Larger"
+                title={t('tp.larger')}
               >
                 <Plus className="h-4 w-4" />
               </button>
             </div>
             <div className={styles.settingsRow}>
-              <span className={styles.settingsLabel}>Color</span>
+              <span className={styles.settingsLabel}>{t('tp.color')}</span>
               <div className={styles.colorSwatches}>
-                {COLOR_PRESETS.map((c) => (
-                  <button
-                    key={c.value}
-                    className={`${styles.colorSwatch} ${fontColor === c.value ? styles.colorSwatchActive : ''}`}
-                    style={{ background: c.value }}
-                    onClick={() => setFontColor(c.value)}
-                    title={c.name}
-                    aria-label={c.name}
-                  />
-                ))}
+                {COLOR_PRESETS.map((c) => {
+                  const colorLabel = t(c.nameKey);
+                  return (
+                    <button
+                      key={c.value}
+                      className={`${styles.colorSwatch} ${fontColor === c.value ? styles.colorSwatchActive : ''}`}
+                      style={{ background: c.value }}
+                      onClick={() => setFontColor(c.value)}
+                      title={colorLabel}
+                      aria-label={colorLabel}
+                    />
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -506,17 +597,17 @@ export function Teleprompter({
           <div
             className={`${styles.resizeHandle} ${styles.resizeRight}`}
             onPointerDown={startResize('x')}
-            title="Drag to resize width"
+            title={t('tp.resizeWidth')}
           />
           <div
             className={`${styles.resizeHandle} ${styles.resizeBottom}`}
             onPointerDown={startResize('y')}
-            title="Drag to resize height"
+            title={t('tp.resizeHeight')}
           />
           <div
             className={`${styles.resizeHandle} ${styles.resizeCorner}`}
             onPointerDown={startResize('xy')}
-            title="Drag to resize"
+            title={t('tp.resize')}
           />
         </>
       )}

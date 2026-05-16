@@ -72,7 +72,7 @@ const FramingSelect = () => {
             onChange={(_event, value) => {
               if (typeof value === 'number') setFraming({ zoom: value });
             }}
-            aria-label="Camera zoom"
+            aria-label={t('framing.cameraZoom')}
           />
         </div>
       </Tooltip>
@@ -91,7 +91,7 @@ const FramingSelect = () => {
             onChange={(_event, value) => {
               if (typeof value === 'number') setFraming({ offsetX: value });
             }}
-            aria-label="Horizontal framing offset"
+            aria-label={t('framing.ariaHorizontal')}
           />
         </div>
       </Tooltip>
@@ -110,7 +110,7 @@ const FramingSelect = () => {
             onChange={(_event, value) => {
               if (typeof value === 'number') setFraming({ offsetY: value });
             }}
-            aria-label="Vertical framing offset"
+            aria-label={t('framing.ariaVertical')}
           />
         </div>
       </Tooltip>
@@ -130,7 +130,7 @@ const FramingSelect = () => {
           color={isAuto ? 'primary' : 'default'}
           className={isAuto ? styles.autoActive : undefined}
           onClick={() => setFramingMode(isAuto ? 'manual' : 'auto')}
-          aria-label="Toggle auto face centering"
+          aria-label={t('framing.ariaAutoToggle')}
           aria-pressed={isAuto}
         >
           <ScanFace size={16} />

@@ -86,7 +86,7 @@ const MicLevelMeter = ({ stream }: MicLevelMeterProps) => {
       <div
         ref={containerRef}
         className={`${styles.root} ${noSignal ? styles.noSignal : ''}`}
-        aria-label={noSignal ? 'No microphone signal detected' : 'Microphone level'}
+        aria-label={noSignal ? t('mic.noSignal') : t('mic.level')}
       >
         {Array.from({ length: BAR_COUNT }).map((_, i) => (
           <span

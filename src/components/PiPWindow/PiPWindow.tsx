@@ -75,6 +75,13 @@ const TELEPROMPTER_BODY_PX = 460;
 const HEADER_PX = 32;
 const PIP_WIDTH = 480;
 
+// Hard minimums enforced on the PiP window. Tuned so the inline teleprompter's
+// controls + at least a sliver of text fit without `.sectionBody` overflowing
+// into scrollbars. Used by the resize clamp below.
+const MIN_PIP_WIDTH = 320;
+const MIN_TELEPROMPTER_BODY_PX = 240;
+const MIN_CAMERA_BODY_PX = 120;
+
 const PiPWindow = ({ pipWindow }: PiPWindowProps) => {
   const { layout } = useLayout();
 
@@ -135,6 +142,44 @@ const PiPWindow = ({ pipWindow }: PiPWindowProps) => {
     teleprompterExpanded,
     shape,
     cameraAspectRatio,
+  ]);
+
+  // Clamp user resizes up to the minimum window size required to render the
+  // visible sections without `.sectionBody` overflowing. Without this, dragging
+  // the PiP window below ~240px tall produces ugly horizontal+vertical
+  // scrollbars inside the teleprompter section.
+  useEffect(() => {
+    const enforceMinSize = () => {
+      let minH = 0;
+      if (cameraVisible) {
+        minH += cameraExpanded ? MIN_CAMERA_BODY_PX + HEADER_PX : HEADER_PX;
+      }
+      if (teleprompterEnabled) {
+        minH += teleprompterExpanded
+          ? MIN_TELEPROMPTER_BODY_PX + HEADER_PX
+          : HEADER_PX;
+      }
+      minH = Math.max(minH, 80);
+
+      const w = pipWindow.innerWidth;
+      const h = pipWindow.innerHeight;
+      if (w < MIN_PIP_WIDTH || h < minH) {
+        try {
+          pipWindow.resizeTo(Math.max(w, MIN_PIP_WIDTH), Math.max(h, minH));
+        } catch {
+          /* Browser refused — fall back to CSS overflow:hidden clip. */
+        }
+      }
+    };
+    enforceMinSize();
+    pipWindow.addEventListener('resize', enforceMinSize);
+    return () => pipWindow.removeEventListener('resize', enforceMinSize);
+  }, [
+    pipWindow,
+    cameraVisible,
+    cameraExpanded,
+    teleprompterEnabled,
+    teleprompterExpanded,
   ]);
 
   // Run the VB preview pipeline inside the PiP window when a non-none

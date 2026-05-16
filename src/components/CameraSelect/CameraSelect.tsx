@@ -3,6 +3,7 @@ import VideocamIcon from '@mui/icons-material/VideocamOutlined';
 import MenuItem from '@mui/material/MenuItem';
 
 import DeviceSelect from 'components/DeviceSelect';
+import { useI18n } from 'contexts/i18n';
 import { useMediaDevices } from 'contexts/mediaDevices';
 
 const CameraSelect = () => {
@@ -13,6 +14,7 @@ const CameraSelect = () => {
     setPreferredCamera,
     setCameraEnabled,
   } = useMediaDevices();
+  const { t } = useI18n();
 
   return (
     <DeviceSelect
@@ -36,7 +38,7 @@ const CameraSelect = () => {
         ))
       ) : (
         <MenuItem disabled value="">
-          No cameras available
+          {t('device.noCameras')}
         </MenuItem>
       )}
     </DeviceSelect>

@@ -121,28 +121,28 @@ const BackgroundSelect = () => {
       event.target.value = '';
       if (!file) return;
       if (!file.type.startsWith('image/')) {
-        setUploadError('Please choose an image file.');
+        setUploadError(t('bg.errChooseImage'));
         return;
       }
       if (file.size > MAX_UPLOAD_BYTES) {
-        setUploadError('Image is too large (max 4 MB).');
+        setUploadError(t('bg.errTooLarge'));
         return;
       }
       const reader = new FileReader();
       reader.onload = () => {
         const dataUrl = typeof reader.result === 'string' ? reader.result : null;
         if (!dataUrl) {
-          setUploadError('Failed to read image.');
+          setUploadError(t('bg.errReadFailed'));
           return;
         }
         setUploadedImage(dataUrl);
         setOption({ kind: 'image', id: 'user-upload', imageDataUrl: dataUrl });
         setUploadError(null);
       };
-      reader.onerror = () => setUploadError('Failed to read image.');
+      reader.onerror = () => setUploadError(t('bg.errReadFailed'));
       reader.readAsDataURL(file);
     },
-    [setOption, setUploadedImage],
+    [setOption, setUploadedImage, t],
   );
 
   const removeUpload = useCallback(() => {
@@ -200,7 +200,7 @@ const BackgroundSelect = () => {
             <Thumb
               key={preset.id}
               active={option.kind === 'gradient' && option.id === preset.id}
-              label={preset.label}
+              label={t(preset.labelKey)}
               onClick={() => {
                 setOption({
                   kind: 'gradient',
@@ -217,7 +217,7 @@ const BackgroundSelect = () => {
             <Thumb
               key={preset.id}
               active={option.kind === 'color' && option.id === preset.id}
-              label={preset.label}
+              label={t(preset.labelKey)}
               onClick={() => {
                 setOption({
                   kind: 'color',
@@ -243,10 +243,10 @@ const BackgroundSelect = () => {
                 close();
               }}
             >
-              <img src={uploadedImage} alt="Custom background" />
+              <img src={uploadedImage} alt={t('bg.altCustom')} />
               <span
                 role="button"
-                aria-label="Remove uploaded background"
+                aria-label={t('bg.removeUpload')}
                 tabIndex={0}
                 className={styles.removeUpload}
                 onClick={(event) => {

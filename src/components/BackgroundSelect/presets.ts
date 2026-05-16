@@ -7,14 +7,14 @@ import type { GradientSpec } from 'services/virtualBackground';
 
 export type GradientPreset = {
   id: string;
-  label: string;
+  labelKey: string;
   gradient: GradientSpec;
 };
 
 export const GRADIENT_PRESETS: GradientPreset[] = [
   {
     id: 'office-blue',
-    label: 'Office Blue',
+    labelKey: 'bg.preset.officeBlue',
     gradient: {
       type: 'linear',
       angle: 160,
@@ -26,7 +26,7 @@ export const GRADIENT_PRESETS: GradientPreset[] = [
   },
   {
     id: 'sunset',
-    label: 'Sunset',
+    labelKey: 'bg.preset.sunset',
     gradient: {
       type: 'linear',
       angle: 200,
@@ -39,7 +39,7 @@ export const GRADIENT_PRESETS: GradientPreset[] = [
   },
   {
     id: 'mint',
-    label: 'Mint',
+    labelKey: 'bg.preset.mint',
     gradient: {
       type: 'linear',
       angle: 145,
@@ -51,7 +51,7 @@ export const GRADIENT_PRESETS: GradientPreset[] = [
   },
   {
     id: 'midnight',
-    label: 'Midnight',
+    labelKey: 'bg.preset.midnight',
     gradient: {
       type: 'radial',
       stops: [
@@ -64,11 +64,11 @@ export const GRADIENT_PRESETS: GradientPreset[] = [
 
 export type ColorPreset = {
   id: string;
-  label: string;
+  labelKey: string;
   color: string;
 };
 
 export const COLOR_PRESETS: ColorPreset[] = [
-  { id: 'studio-grey', label: 'Studio Grey', color: '#3a3a3a' },
-  { id: 'pure-white', label: 'White', color: '#f4f4f4' },
+  { id: 'studio-grey', labelKey: 'bg.preset.studioGrey', color: '#3a3a3a' },
+  { id: 'pure-white', labelKey: 'bg.preset.white', color: '#f4f4f4' },
 ];

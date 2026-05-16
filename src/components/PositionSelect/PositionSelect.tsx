@@ -21,22 +21,23 @@ import {
   getEffectiveCameraAspectRatio,
   useCameraShape,
 } from 'contexts/cameraShape';
+import { useI18n } from 'contexts/i18n';
 import { useStreams } from 'contexts/streams';
 
 import styles from './PositionSelect.module.css';
 
 type PresetSpec = {
   name: CameraPresetName;
-  label: string;
+  labelKey: string;
   Icon: typeof ArrowUpLeft;
 };
 
 const PRESETS: PresetSpec[] = [
-  { name: 'tl', label: 'Top left', Icon: ArrowUpLeft },
-  { name: 'tr', label: 'Top right', Icon: ArrowUpRight },
-  { name: 'bl', label: 'Bottom left', Icon: ArrowDownLeft },
-  { name: 'br', label: 'Bottom right', Icon: ArrowDownRight },
-  { name: 'center', label: 'Center', Icon: Square },
+  { name: 'tl', labelKey: 'position.topLeft', Icon: ArrowUpLeft },
+  { name: 'tr', labelKey: 'position.topRight', Icon: ArrowUpRight },
+  { name: 'bl', labelKey: 'position.bottomLeft', Icon: ArrowDownLeft },
+  { name: 'br', labelKey: 'position.bottomRight', Icon: ArrowDownRight },
+  { name: 'center', labelKey: 'position.center', Icon: Square },
 ];
 
 // Default screenshare aspect (16:9) used to derive sizeFracY for presets when
@@ -48,6 +49,7 @@ const PositionSelect = () => {
     useCameraPosition();
   const { shape } = useCameraShape();
   const { screenshareStream, cameraStream } = useStreams();
+  const { t } = useI18n();
 
   if (!cameraStream) return null;
   if (!screenshareStream) {
@@ -63,12 +65,14 @@ const PositionSelect = () => {
   const sizeFracY = (size * DEFAULT_SCREENSHARE_ASPECT) / effectiveAspect;
 
   const active = matchPreset(position, sizeFracX, sizeFracY);
+  const cameraSizeLabel = t('position.cameraSize');
 
   return (
     <div className={styles.wrapper}>
       <div className={styles.root}>
-        {PRESETS.map(({ name, label, Icon }) => {
+        {PRESETS.map(({ name, labelKey, Icon }) => {
           const isActive = active === name;
+          const label = t(labelKey);
           return (
             <Tooltip key={name} title={label}>
               <IconButton
@@ -86,7 +90,7 @@ const PositionSelect = () => {
           );
         })}
       </div>
-      <Tooltip title="Camera size">
+      <Tooltip title={cameraSizeLabel}>
         <div className={styles.sizeGroup}>
           <span className={styles.sizeLabel}>{Math.round(size * 100)}%</span>
           <Slider
@@ -99,7 +103,7 @@ const PositionSelect = () => {
             onChange={(_event, value) => {
               if (typeof value === 'number') setSize(value);
             }}
-            aria-label="Camera size"
+            aria-label={cameraSizeLabel}
           />
         </div>
       </Tooltip>

@@ -2,26 +2,30 @@
   margin-block: -4px;
 }
 
-/* Ready state: white icon with "Ready" label, before PiP is open. */
+/* Ready state: white rectangular pill with "Share screen" label, before PiP
+ * is open. Wider than the recording-state circle, so override width/radius. */
 .root.ready:global(.MuiIconButton-root) {
   border-color: rgba(255, 255, 255, 0.85);
+  border-radius: 10px;
+  width: 132px;
+  height: 44px;
 }
 
 .root.ready .icon {
   background-color: white;
   box-shadow: none;
+  border-radius: 6px;
   display: grid;
   place-content: center;
   font-family: Helvetica, Arial, sans-serif;
-  font-size: 10px;
+  font-size: 14px;
   font-weight: 700;
   color: rgba(0, 0, 0, 0.85);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .root.ready .icon::after {
-  content: 'Ready';
+  content: '共享屏幕';
 }
 
 /* Recording state: red square stop indicator. */

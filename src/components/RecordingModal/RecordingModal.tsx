@@ -2,6 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { fetchFile, toBlobURL } from '@ffmpeg/util';
 import Button from '@mui/material/Button';
+
+import { useI18n } from 'contexts/i18n';
+
 import styles from './RecordingModal.module.css';
 
 type RecordingModalProps = {
@@ -15,6 +18,7 @@ export const RecordingModal = ({
   onClose,
   recordingBlob,
 }: RecordingModalProps) => {
+  const { t } = useI18n();
   const [status, setStatus] = useState<'idle' | 'loading' | 'converting'>(
     'idle',
   );
@@ -29,7 +33,7 @@ export const RecordingModal = ({
     ffmpeg.on('log', ({ message }) => {
       console.log('FFmpeg log:', message);
       if (message.includes('configuration')) {
-        setStatusMessage('Initializing encoder...');
+        setStatusMessage(t('modal.initializingEncoder'));
       }
     });
 
@@ -50,14 +54,14 @@ export const RecordingModal = ({
         ),
       );
       setProgress(percentage);
-      setStatusMessage(`Converting video... ${percentage}%`);
+      setStatusMessage(t('modal.convertingVideo', { p: percentage }));
     });
 
     return () => {
       ffmpeg.off('log', () => {});
       ffmpeg.off('progress', () => {});
     };
-  }, []);
+  }, [t]);
 
   if (!isOpen || !recordingBlob) return null;
 
@@ -75,7 +79,7 @@ export const RecordingModal = ({
     if (!ffmpegRef.current) return;
 
     setStatus('loading');
-    setStatusMessage('Loading FFmpeg libraries...');
+    setStatusMessage(t('modal.loadingFfmpeg'));
     setProgress(0);
 
     const ffmpeg = ffmpegRef.current;
@@ -94,13 +98,13 @@ export const RecordingModal = ({
         ),
       });
 
-      setStatusMessage('Processing input file...');
+      setStatusMessage(t('modal.processingInput'));
       await ffmpeg.writeFile('input.webm', await fetchFile(recordingBlob));
 
-      setStatusMessage('Starting conversion...');
+      setStatusMessage(t('modal.startingConversion'));
       await ffmpeg.exec(['-i', 'input.webm', '-c:v', 'libx264', 'output.mp4']);
 
-      setStatusMessage('Reading converted file...');
+      setStatusMessage(t('modal.readingFile'));
       const data = await ffmpeg.readFile('output.mp4');
 
       // Download the converted file
@@ -122,7 +126,7 @@ export const RecordingModal = ({
       const errorMessage =
         error instanceof Error ? error.message : String(error);
       console.error('Error converting video:', errorMessage);
-      setStatusMessage(`Error: ${errorMessage}`);
+      setStatusMessage(t('modal.errorPrefix', { msg: errorMessage }));
       setStatus('idle');
     }
   };
@@ -152,7 +156,7 @@ export const RecordingModal = ({
         }}
       >
         <h2 style={{ marginTop: 0, marginBottom: '1.5rem' }}>
-          Recording Complete
+          {t('modal.recordingComplete')}
         </h2>
         {status !== 'idle' ? (
           <div>
@@ -190,13 +194,13 @@ export const RecordingModal = ({
               className={styles.convertButton}
 
             >
-              Convert (MP4)
+              {t('modal.convertMp4')}
             </Button>
             <Button
               onClick={downloadWebm}
               className={styles.downloadButton}
             >
-              Download (WebM)
+              {t('modal.downloadWebm')}
             </Button>
           </div>
         )}

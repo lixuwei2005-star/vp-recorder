@@ -59,8 +59,11 @@ export const ScreenshareProvider = ({ children }: ScreenshareProviderProps) => {
       attachEndedHandler(stream);
       setScreenshareStream(stream);
     } catch {
-      // Happens when the user aborts the screenshare
-      if (isRecordingRef.current && layoutRef.current !== 'cameraOnly') {
+      // Happens when the user aborts the screenshare. Close the PiP window
+      // when the layout needs a screen — both during an active recording, and
+      // at the initial Ready step (otherwise the next click would start a
+      // countdown and record without any screen stream).
+      if (layoutRef.current !== 'cameraOnly') {
         pipWindowRef.current?.close();
       }
     }

@@ -3,6 +3,7 @@ import MicOffIcon from '@mui/icons-material/MicOffOutlined';
 import MenuItem from '@mui/material/MenuItem';
 
 import DeviceSelect from 'components/DeviceSelect';
+import { useI18n } from 'contexts/i18n';
 import { useMediaDevices } from 'contexts/mediaDevices';
 
 const MicrophoneSelect = () => {
@@ -13,6 +14,7 @@ const MicrophoneSelect = () => {
     setPreferredMicrophone,
     setMicrophoneEnabled,
   } = useMediaDevices();
+  const { t } = useI18n();
 
   return (
     <DeviceSelect
@@ -34,7 +36,7 @@ const MicrophoneSelect = () => {
         ))
       ) : (
         <MenuItem disabled value="">
-          No microphones available
+          {t('device.noMicrophones')}
         </MenuItem>
       )}
     </DeviceSelect>
