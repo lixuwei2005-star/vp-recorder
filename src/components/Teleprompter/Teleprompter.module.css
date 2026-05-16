@@ -74,19 +74,47 @@
  * switcher, main record/stop, and pause buttons — duplicates of the footer
  * controls so the user can act without leaving the PiP overlay.
  *
- * The MainRecordButton's "ready" pill state never applies in the inline
- * teleprompter (pipWindow is always present here, so isReady is always
- * false), so its layout collapses to the default 52×52 circle which fits
- * fine alongside the 44×44 IconButtons.
+ * The MainRecordButton's "ready" pill state never applies here (pipWindow
+ * is always present, so isReady is always false), so its layout collapses
+ * to the default circle.
+ *
+ * Sizes are deliberately smaller than the footer originals (44/52 → 32)
+ * because the PiP teleprompter window is narrow and these duplicate the
+ * footer controls — they should be compact accents, not a second hero row.
+ * The `.contentInline` prefix lifts specificity above the component CSS
+ * modules' `.button:global(.MuiIconButton-root)` rules so this wins
+ * regardless of stylesheet load order.
  */
 .actionRow {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.6rem;
+  gap: 0.5rem;
   flex-wrap: wrap;
-  padding-bottom: 0.5rem;
+  padding-bottom: 0.4rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.contentInline .actionRow :global(.MuiIconButton-root) {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+}
+
+.contentInline .actionRow :global(.MuiIconButton-root) svg {
+  width: 16px;
+  height: 16px;
+}
+
+/*
+ * Tame the RecordButton's red-dot glow at the smaller scale — the original
+ * 24px / 8px shadow swamps a 32px button and bleeds into neighbours.
+ * Targets the icon child by structure (the IconButton's first <div>) so we
+ * don't need to import the RecordButton's hashed class name.
+ */
+.contentInline .actionRow :global(.MuiIconButton-root) > div {
+  box-shadow: 0 0 6px 1px rgb(var(--mui-palette-primary-mainChannel) / 45%);
 }
 
 .contentInline .controlButton {
