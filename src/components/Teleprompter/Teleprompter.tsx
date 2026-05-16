@@ -22,6 +22,9 @@ import {
   Type,
   GripHorizontal,
 } from 'lucide-react';
+import MainRecordButton from 'components/MainRecordButton';
+import PauseButton from 'components/PauseButton';
+import ScreenshareSwitchButton from 'components/ScreenshareSwitchButton';
 import { useI18n } from 'contexts/i18n';
 import { usePictureInPicture } from 'contexts/pictureInPicture';
 import styles from './Teleprompter.module.css';
@@ -462,6 +465,20 @@ export function Teleprompter({
             : undefined
         }
       >
+        {/*
+         * Inline (PiP) variant only: the user has the recording target window
+         * in front and can't easily reach the main app's footer. Surface the
+         * three most common in-recording actions — switch screen source,
+         * start/stop record, pause — right above the playback controls.
+         * Floating variant skips this since the main footer already has them.
+         */}
+        {isInline && (
+          <div className={styles.actionRow}>
+            <ScreenshareSwitchButton />
+            <MainRecordButton />
+            <PauseButton />
+          </div>
+        )}
         <div className={styles.controlsRow}>
           <div className={styles.modeToggle} role="tablist">
             <button

@@ -69,6 +69,26 @@
   justify-content: center;
 }
 
+/*
+ * Top action row inside the inline (PiP) controls. Holds the screenshare
+ * switcher, main record/stop, and pause buttons — duplicates of the footer
+ * controls so the user can act without leaving the PiP overlay.
+ *
+ * The MainRecordButton's "ready" pill state never applies in the inline
+ * teleprompter (pipWindow is always present here, so isReady is always
+ * false), so its layout collapses to the default 52×52 circle which fits
+ * fine alongside the 44×44 IconButtons.
+ */
+.actionRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
 .contentInline .controlButton {
   padding: 6px;
 }
