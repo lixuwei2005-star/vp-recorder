@@ -11,6 +11,7 @@ import RecordingTimer from 'components/RecordingTimer';
 import ScreenshareSwitchButton from 'components/ScreenshareSwitchButton';
 import ShapeSelect from 'components/ShapeSelect';
 import TeleprompterSelect from 'components/TeleprompterSelect';
+import ViewIntroButton from 'components/ViewIntroButton';
 import { useStreams } from 'contexts/streams';
 
 import styles from './Footer.module.css';
@@ -21,6 +22,7 @@ const Footer = () => {
     <footer className={styles.root}>
       <div className={styles.leftSlot}>
         <ScreenshareSwitchButton />
+        <ViewIntroButton />
         <LanguageSwitcher />
       </div>
       <div className={styles.recordCluster}>

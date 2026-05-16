@@ -8,6 +8,7 @@ import { createRoot } from 'react-dom/client';
 
 import BrowserNotSupported from 'components/BrowserNotSupported';
 import Compose from 'components/Compose';
+import Landing from 'components/Landing';
 import { CountdownProvider } from 'contexts/countdown';
 import { I18nProvider } from 'contexts/i18n';
 import { LayoutProvider } from 'contexts/layout';
@@ -21,6 +22,7 @@ import { ScreenshareProvider } from 'contexts/screenshare';
 import { StreamsProvider } from 'contexts/streams';
 import { TeleprompterProvider } from 'contexts/teleprompter';
 import { VirtualBackgroundProvider } from 'contexts/virtualBackground';
+import { getInitialView } from 'services/landingRoute';
 
 import App from './App';
 import theme from './theme';
@@ -30,12 +32,18 @@ const isBrowserSupported =
   'MediaStreamTrackProcessor' in window &&
   'MediaStreamTrackGenerator' in window;
 
+const initialView = getInitialView();
+
 createRoot(document.getElementById('root') as HTMLElement).render(
   <StrictMode>
     <StyledEngineProvider injectFirst>
       <CssVarsProvider theme={theme} defaultMode="dark">
         <CssBaseline />
-        {isBrowserSupported ? (
+        {initialView === 'landing' ? (
+          <I18nProvider>
+            <Landing />
+          </I18nProvider>
+        ) : isBrowserSupported ? (
           <Compose
             components={[
               I18nProvider,
