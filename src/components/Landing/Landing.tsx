@@ -27,12 +27,8 @@ const STEP_KEYS = ['s1', 's2', 's3', 's4', 's5'] as const;
 const SHORTCUT_KEYS = [
   'shiftNum',
   'shiftSize',
-  'ctrl0',
-  'e',
-  'd',
   'space',
   'pageUpDown',
-  'bracket',
   'home',
 ] as const;
 const FAQ_KEYS = ['q1', 'q2', 'q3', 'q4', 'q5'] as const;
