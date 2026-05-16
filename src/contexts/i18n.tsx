@@ -53,6 +53,9 @@ const en: Dict = {
   'record.stop': 'Stop recording',
   'lang.label': 'Language',
   'screenshare.switch': 'Switch shared screen',
+  'screenshare.monitorWarning':
+    'Sharing the entire screen records the teleprompter too. Switch to a window/tab share, or drag the teleprompter to another monitor.',
+  'screenshare.switchSource': 'Switch source',
   'browser.notSupportedTitle': 'This browser is not yet supported',
   'browser.notSupportedBody':
     'This app requires the following browser APIs which are currently only supported in Chrome:',
@@ -157,6 +160,9 @@ const zh: Dict = {
   'record.stop': '停止录制',
   'lang.label': '语言',
   'screenshare.switch': '切换共享屏幕',
+  'screenshare.monitorWarning':
+    '整屏共享会把提词器一起录进去。建议改为共享某个窗口/标签页，或把提词器拖到另一块显示器上。',
+  'screenshare.switchSource': '切换来源',
   'browser.notSupportedTitle': '当前浏览器暂不支持',
   'browser.notSupportedBody':
     '此应用需要以下浏览器 API,目前仅 Chrome 支持:',

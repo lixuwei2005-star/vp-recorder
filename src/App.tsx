@@ -2,6 +2,7 @@ import cx from 'classnames';
 
 import Footer from 'components/Footer';
 import LayoutSwitcher from 'components/LayoutSwitcher';
+import MonitorShareWarning from 'components/MonitorShareWarning';
 import PiPWindow from 'components/PiPWindow';
 import { Teleprompter } from 'components/Teleprompter/Teleprompter';
 import VideoStreams from 'components/VideoStreams';
@@ -68,6 +69,7 @@ const App = () => {
         />
       )}
       {pipWindow && <PiPWindow pipWindow={pipWindow} />}
+      <MonitorShareWarning />
     </div>
   );
 };
