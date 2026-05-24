@@ -10,7 +10,6 @@ import {
   ScanFace,
   ScrollText,
   Sparkles,
-  Video,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -28,8 +27,8 @@ const isBrowserSupported =
 
 const GITHUB_URL = 'https://github.com/lixuwei2005-star/vp-recorder';
 
-const FEATURE_ICONS = [Layers, ScanFace, Sparkles, ScrollText, Lock, Video];
-const FEATURE_KEYS = ['f1', 'f2', 'f3', 'f4', 'f5', 'f6'] as const;
+const FEATURE_ICONS = [Layers, ScanFace, Sparkles, ScrollText, Lock];
+const FEATURE_KEYS = ['f1', 'f2', 'f3', 'f4', 'f5'] as const;
 const STEP_KEYS = ['s1', 's2', 's3', 's4', 's5'] as const;
 const SHORTCUT_KEYS = [
   'shiftNum',

@@ -61,15 +61,8 @@ const en: Dict = {
     'This app requires the following browser APIs which are currently only supported in Chrome:',
   'browser.openChrome': 'Google Chrome',
   'modal.recordingComplete': 'Recording Complete',
-  'modal.convertMp4': 'Convert (MP4)',
   'modal.downloadWebm': 'Download (WebM)',
-  'modal.initializingEncoder': 'Initializing encoder...',
-  'modal.convertingVideo': 'Converting video... {p}%',
-  'modal.loadingFfmpeg': 'Loading FFmpeg libraries...',
-  'modal.processingInput': 'Processing input file...',
-  'modal.startingConversion': 'Starting conversion...',
-  'modal.readingFile': 'Reading converted file...',
-  'modal.errorPrefix': 'Error: {msg}',
+  'modal.cancel': 'Cancel',
   'shape.rectangle': 'Rectangle',
   'shape.square': 'Square',
   'shape.circle': 'Circle',
@@ -136,10 +129,7 @@ const en: Dict = {
     'Cross-window prompter you can drag to a second monitor. Auto-scroll or manual paging with tunable size, color, and speed.',
   'landing.features.f5.title': 'Privacy first',
   'landing.features.f5.body':
-    'Everything — including MP4 transcoding — happens in your browser. Your recording never leaves your device.',
-  'landing.features.f6.title': 'One-click MP4',
-  'landing.features.f6.body':
-    'FFmpeg.wasm transcodes locally; export MP4 in one click, or grab the raw WebM if you prefer.',
+    'Everything happens in your browser. Your recording never leaves your device.',
   'landing.steps.title': 'Five steps to your first recording',
   'landing.steps.s1.title': 'Grant device access',
   'landing.steps.s1.body':
@@ -155,7 +145,7 @@ const en: Dict = {
     'Hit the red record button. Pause and resume any time. If the teleprompter is on, drag it to another monitor or share just a window so it stays out of the final video.',
   'landing.steps.s5.title': 'Export',
   'landing.steps.s5.body':
-    'When you stop, convert to MP4 or download the original WebM — no upload involved.',
+    'When you stop, download the WebM file — no upload involved.',
   'landing.shortcuts.title': 'Keyboard shortcuts',
   'landing.shortcuts.key.shiftNum': 'Shift + 1 — 5',
   'landing.shortcuts.desc.shiftNum':
@@ -173,7 +163,7 @@ const en: Dict = {
   'landing.faq.title': 'Frequently asked',
   'landing.faq.q1': 'Does my video get uploaded anywhere?',
   'landing.faq.a1':
-    'No. The entire pipeline including MP4 transcoding runs in your browser. Nothing leaves your machine.',
+    'No. The entire pipeline runs in your browser. Nothing leaves your machine.',
   'landing.faq.q2': 'Which browsers are supported?',
   'landing.faq.a2':
     'Chromium browsers with documentPictureInPicture and MediaStreamTrackProcessor support. The latest Chrome or Edge works; Firefox and Safari are not yet supported.',
@@ -250,15 +240,8 @@ const zh: Dict = {
     '此应用需要以下浏览器 API,目前仅 Chrome 支持:',
   'browser.openChrome': 'Google Chrome',
   'modal.recordingComplete': '录制完成',
-  'modal.convertMp4': '转换为 MP4',
   'modal.downloadWebm': '下载 WebM',
-  'modal.initializingEncoder': '正在初始化编码器…',
-  'modal.convertingVideo': '正在转换视频… {p}%',
-  'modal.loadingFfmpeg': '正在加载 FFmpeg 库…',
-  'modal.processingInput': '正在处理输入文件…',
-  'modal.startingConversion': '开始转换…',
-  'modal.readingFile': '正在读取转换后的文件…',
-  'modal.errorPrefix': '错误: {msg}',
+  'modal.cancel': '取消',
   'shape.rectangle': '矩形',
   'shape.square': '方形',
   'shape.circle': '圆形',
@@ -325,10 +308,7 @@ const zh: Dict = {
     '跨窗口浮动，可拖到副屏。支持自动滚动与手动翻页，字号、颜色、速度全可调。',
   'landing.features.f5.title': '隐私优先',
   'landing.features.f5.body':
-    '所有处理——包括 MP4 转码——都在你的浏览器内完成，视频从不离开本机。',
-  'landing.features.f6.title': '一键 MP4 导出',
-  'landing.features.f6.body':
-    '内置 FFmpeg.wasm 浏览器内转码，一键得到 MP4；也可直接下载原始 WebM。',
+    '所有处理都在你的浏览器内完成，视频从不离开本机。',
   'landing.steps.title': '5 步完成第一次录制',
   'landing.steps.s1.title': '授权设备',
   'landing.steps.s1.body':
@@ -344,7 +324,7 @@ const zh: Dict = {
     '点击中央红色录制按钮，可随时暂停 / 继续。启用提词器时，建议把提词器拖到副屏或共享单个窗口，避免被录进画面。',
   'landing.steps.s5.title': '导出',
   'landing.steps.s5.body':
-    '录制结束后选择转为 MP4 或直接下载 WebM —— 全程无上传。',
+    '录制结束后下载 WebM 文件 —— 全程无上传。',
   'landing.shortcuts.title': '快捷键',
   'landing.shortcuts.key.shiftNum': 'Shift + 1 — 5',
   'landing.shortcuts.desc.shiftNum': '摄像头吸附到 5 个预设位置（四角 + 居中）',
@@ -360,7 +340,7 @@ const zh: Dict = {
   'landing.faq.title': '常见问题',
   'landing.faq.q1': '录制视频会上传到服务器吗？',
   'landing.faq.a1':
-    '不会。整个流程包括 MP4 转码都在你的浏览器中完成，视频从不离开本机。',
+    '不会。整个流程都在你的浏览器中完成，视频从不离开本机。',
   'landing.faq.q2': '支持哪些浏览器？',
   'landing.faq.a2':
     '需要支持 documentPictureInPicture 和 MediaStreamTrackProcessor 的 Chromium 浏览器。推荐最新版 Chrome 或 Edge；Firefox / Safari 暂不支持。',

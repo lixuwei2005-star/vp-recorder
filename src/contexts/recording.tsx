@@ -123,7 +123,7 @@ export const RecordingProvider = ({ children }: RecordingProviderProps) => {
       handle.dispose();
       composerHandleRef.current = null;
 
-      const blob = new Blob(chunks);
+      const blob = new Blob(chunks, { type: 'video/webm' });
 
       setRecordingBlob(blob);
       setIsModalOpen(true);
